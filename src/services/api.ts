@@ -2,6 +2,37 @@
 import { supabase } from '@/lib/supabase';
 import { User, RoadTrip, RoadStop, Rating } from './types';
 
+// Helper function to convert snake_case to camelCase for frontend consumption
+const formatResponseData = (data: any): any => {
+  if (Array.isArray(data)) {
+    return data.map(item => formatResponseData(item));
+  }
+  
+  if (data === null || data === undefined || typeof data !== 'object') {
+    return data;
+  }
+  
+  const formattedData = { ...data };
+  
+  // Add camelCase versions of snake_case properties
+  if ('average_rating' in formattedData) {
+    formattedData.averageRating = formattedData.average_rating;
+  }
+  
+  if ('created_at' in formattedData) {
+    formattedData.createdAt = formattedData.created_at;
+  }
+  
+  // Process nested objects
+  Object.keys(formattedData).forEach(key => {
+    if (formattedData[key] && typeof formattedData[key] === 'object') {
+      formattedData[key] = formatResponseData(formattedData[key]);
+    }
+  });
+  
+  return formattedData;
+};
+
 export const api = {
   // Road Trips
   getTrips: async (): Promise<RoadTrip[]> => {
@@ -15,7 +46,7 @@ export const api = {
       `);
     
     if (error) throw error;
-    return data as RoadTrip[];
+    return formatResponseData(data) as RoadTrip[];
   },
   
   getTripById: async (id: string): Promise<RoadTrip | undefined> => {
@@ -31,7 +62,7 @@ export const api = {
       .single();
     
     if (error) throw error;
-    return data as RoadTrip;
+    return formatResponseData(data) as RoadTrip;
   },
   
   createTrip: async (tripData: Partial<RoadTrip>): Promise<RoadTrip> => {
@@ -42,7 +73,7 @@ export const api = {
       .single();
     
     if (error) throw error;
-    return data as RoadTrip;
+    return formatResponseData(data) as RoadTrip;
   },
   
   // Users
@@ -52,7 +83,14 @@ export const api = {
       .select('*');
     
     if (error) throw error;
-    return data as User[];
+    
+    // Add createdTrips property (can be calculated from a query in a real implementation)
+    const formattedData = formatResponseData(data).map((user: User) => ({
+      ...user,
+      createdTrips: 0 // Default value, would be calculated in a real implementation
+    }));
+    
+    return formattedData as User[];
   },
   
   getUserById: async (id: string): Promise<User | undefined> => {
@@ -63,7 +101,11 @@ export const api = {
       .single();
     
     if (error) throw error;
-    return data as User;
+    
+    const formattedData = formatResponseData(data);
+    formattedData.createdTrips = 0; // Default value, would be calculated in a real implementation
+    
+    return formattedData as User;
   },
   
   getCurrentUser: async (): Promise<User> => {
@@ -77,7 +119,11 @@ export const api = {
       .single();
     
     if (error) throw error;
-    return data as User;
+    
+    const formattedData = formatResponseData(data);
+    formattedData.createdTrips = 0; // Default value, would be calculated in a real implementation
+    
+    return formattedData as User;
   },
   
   // Ratings & Reviews
@@ -97,7 +143,7 @@ export const api = {
       .single();
     
     if (error) throw error;
-    return data as Rating;
+    return formatResponseData(data) as Rating;
   }
 };
 
