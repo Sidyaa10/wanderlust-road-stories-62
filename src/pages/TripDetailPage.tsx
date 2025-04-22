@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Star, Clock, Calendar, User, MessageSquare, X, ArrowLeft } from 'lucide-react';
+import { MapPin, Star, Clock, Calendar, User, MessageSquare, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { api, RoadTrip, Rating } from '@/services/api';
 import Layout from '@/components/Layout';
@@ -133,8 +134,8 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
             onClick={handleBack}
             className="flex items-center gap-2"
           >
-            {onClose ? <X className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
-            {onClose ? "Close" : "Back to Explore"}
+            <ArrowLeft className="h-4 w-4" />
+            Back to Explore
           </Button>
         </div>
       )}
