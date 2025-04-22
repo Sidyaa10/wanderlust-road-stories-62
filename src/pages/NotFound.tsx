@@ -1,5 +1,8 @@
+
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const NotFound = () => {
   const location = useLocation();
@@ -13,12 +16,25 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
+      <div className="text-center bg-white p-8 rounded-xl shadow-md max-w-md">
         <h1 className="text-4xl font-bold mb-4">404</h1>
         <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+        
+        {location.pathname.startsWith('/trip/') && (
+          <div className="mb-6">
+            <p className="text-gray-500 mb-2">
+              The road trip you're looking for doesn't exist or has been removed.
+              There may be an issue with the database connection or the trip ID format.
+            </p>
+            <p className="text-sm text-gray-400 mb-4">
+              Technical info: Supabase requires UUID format for IDs
+            </p>
+          </div>
+        )}
+        
+        <Button asChild className="bg-forest-700 hover:bg-forest-800">
+          <Link to="/explore">Explore Road Trips</Link>
+        </Button>
       </div>
     </div>
   );

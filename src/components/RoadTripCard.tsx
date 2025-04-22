@@ -22,10 +22,10 @@ const RoadTripCard: React.FC<RoadTripCardProps> = ({ trip }) => {
   };
 
   return (
-    <Link to={`/trip/${trip.id}`}>
+    <div className="road-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all">
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div className="road-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all">
+          <Link to={`/explore?selectedTrip=${trip.id}`} className="block">
             <div className="relative h-48">
               <img 
                 src={trip.image} 
@@ -71,7 +71,7 @@ const RoadTripCard: React.FC<RoadTripCardProps> = ({ trip }) => {
                 <span>{formatDistanceToNow(new Date(trip.createdAt), { addSuffix: true })}</span>
               </div>
             </div>
-          </div>
+          </Link>
         </HoverCardTrigger>
         
         <HoverCardContent className="w-80">
@@ -129,7 +129,7 @@ const RoadTripCard: React.FC<RoadTripCardProps> = ({ trip }) => {
           </div>
         </HoverCardContent>
       </HoverCard>
-    </Link>
+    </div>
   );
 };
 
