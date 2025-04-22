@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { User, RoadTrip, RoadStop, Rating } from './types';
 
@@ -33,6 +32,39 @@ const formatResponseData = (data: any): any => {
   return formattedData;
 };
 
+const sampleTrips: Partial<RoadTrip>[] = [
+  {
+    title: "Pacific Coast Highway Adventure",
+    description: "Experience the breathtaking beauty of California's coastline on this iconic road trip from San Francisco to Los Angeles.",
+    image: "https://images.unsplash.com/photo-1540820658190-4d1c2d4a1731?w=800",
+    distance: 750,
+    duration: 5,
+    location: "California, USA",
+    difficulty: "Moderate",
+    average_rating: 4.8
+  },
+  {
+    title: "Iceland Ring Road Journey",
+    description: "Circle the entire island of Iceland on Route 1, experiencing waterfalls, glaciers, and volcanic landscapes.",
+    image: "https://images.unsplash.com/photo-1520769490916-ee4266dd5b24?w=800",
+    distance: 1332,
+    duration: 7,
+    location: "Iceland",
+    difficulty: "Hard",
+    average_rating: 4.9
+  },
+  {
+    title: "Great Ocean Road Expedition",
+    description: "Drive along Australia's southeastern coast to see the Twelve Apostles and other natural wonders.",
+    image: "https://images.unsplash.com/photo-1529108190281-9a4f620bc2d8?w=800",
+    distance: 243,
+    duration: 3,
+    location: "Victoria, Australia",
+    difficulty: "Easy",
+    average_rating: 4.7
+  }
+];
+
 export const api = {
   // Road Trips
   getTrips: async (): Promise<RoadTrip[]> => {
@@ -46,6 +78,32 @@ export const api = {
       `);
     
     if (error) throw error;
+    
+    // If no trips found, add sample trips
+    if (!data || data.length === 0) {
+      // Add sample trips one by one
+      for (const trip of sampleTrips) {
+        const { error: insertError } = await supabase
+          .from('road_trips')
+          .insert(trip);
+          
+        if (insertError) console.warn('Error inserting sample trip:', insertError);
+      }
+      
+      // Fetch trips again after inserting samples
+      const { data: newData, error: fetchError } = await supabase
+        .from('road_trips')
+        .select(`
+          *,
+          author:users(*),
+          stops:road_stops(*),
+          ratings:ratings(*)
+        `);
+      
+      if (fetchError) throw fetchError;
+      return formatResponseData(newData || []) as RoadTrip[];
+    }
+    
     return formatResponseData(data) as RoadTrip[];
   },
   
