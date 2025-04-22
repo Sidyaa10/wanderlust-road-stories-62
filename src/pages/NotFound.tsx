@@ -24,10 +24,10 @@ const NotFound = () => {
           <div className="mb-6">
             <p className="text-gray-500 mb-2">
               The road trip you're looking for doesn't exist or has been removed.
-              There may be an issue with the database connection or the trip ID format.
+              Try viewing trips from the Explore page instead.
             </p>
             <p className="text-sm text-gray-400 mb-4">
-              Technical info: Supabase requires UUID format for IDs
+              Technical info: The app now displays trip details directly on the Explore page
             </p>
           </div>
         )}

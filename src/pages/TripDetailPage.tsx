@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { MapPin, Star, Clock, Calendar, User, MessageSquare } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { MapPin, Star, Clock, Calendar, User, MessageSquare, X, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { api, RoadTrip, Rating } from '@/services/api';
 import Layout from '@/components/Layout';
@@ -12,17 +12,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
-const TripDetailPage: React.FC = () => {
+interface TripDetailPageProps {
+  tripData?: RoadTrip;
+  onClose?: () => void;
+}
+
+const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) => {
   const { id } = useParams<{ id: string }>();
   const [trip, setTrip] = useState<RoadTrip | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(tripData ? false : true);
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [newRating, setNewRating] = useState<number>(5);
   const [reviewComment, setReviewComment] = useState<string>('');
   const [submittingReview, setSubmittingReview] = useState<boolean>(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (tripData) {
+      setTrip(tripData);
+      setLoading(false);
+      return;
+    }
+
     const fetchTrip = async () => {
       if (!id) return;
       
@@ -40,7 +52,7 @@ const TripDetailPage: React.FC = () => {
     };
 
     fetchTrip();
-  }, [id]);
+  }, [id, tripData]);
 
   const handleSubmitReview = async () => {
     if (!trip || !reviewComment.trim()) return;
@@ -49,9 +61,11 @@ const TripDetailPage: React.FC = () => {
       setSubmittingReview(true);
       await api.addRating(trip.id, newRating, reviewComment);
       
-      const updatedTrip = await api.getTripById(trip.id);
-      if (updatedTrip) {
-        setTrip(updatedTrip);
+      if (id) {
+        const updatedTrip = await api.getTripById(trip.id);
+        if (updatedTrip) {
+          setTrip(updatedTrip);
+        }
       }
       
       setReviewComment('');
@@ -70,6 +84,14 @@ const TripDetailPage: React.FC = () => {
       });
     } finally {
       setSubmittingReview(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      navigate('/explore');
     }
   };
 
@@ -104,7 +126,19 @@ const TripDetailPage: React.FC = () => {
 
   return (
     <Layout>
-      {/* Hero Image */}
+      {(onClose || id) && (
+        <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
+          <Button 
+            variant="ghost" 
+            onClick={handleBack}
+            className="flex items-center gap-2"
+          >
+            {onClose ? <X className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
+            {onClose ? "Close" : "Back to Explore"}
+          </Button>
+        </div>
+      )}
+      
       <div className="relative h-[60vh] w-full">
         <img 
           src={trip.image} 
@@ -150,7 +184,6 @@ const TripDetailPage: React.FC = () => {
       
       <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left column - Main content */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="overview" className="mb-12">
               <TabsList className="mb-6">
@@ -331,7 +364,6 @@ const TripDetailPage: React.FC = () => {
             </Tabs>
           </div>
           
-          {/* Right column - Sidebar */}
           <div>
             <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 sticky top-24">
               <div className="p-6">

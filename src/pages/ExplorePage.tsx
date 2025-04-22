@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import { api, RoadTrip } from '@/services/api';
@@ -8,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation, useNavigate } from 'react-router-dom';
+import TripDetailPage from './TripDetailPage';
 
 // Sample fallback data
 const sampleTrips: RoadTrip[] = [
@@ -110,6 +111,12 @@ const ExplorePage: React.FC = () => {
     sortBy: 'rating'
   });
   const { toast } = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const queryParams = new URLSearchParams(location.search);
+  const selectedTripId = queryParams.get('selectedTrip');
+  const [selectedTrip, setSelectedTrip] = useState<RoadTrip | null>(null);
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -117,7 +124,6 @@ const ExplorePage: React.FC = () => {
         setLoading(true);
         const trips = await api.getTrips();
         
-        // If no trips returned, use sample data
         if (trips.length === 0) {
           setUseLocalData(true);
           setAllTrips(sampleTrips);
@@ -149,13 +155,25 @@ const ExplorePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (selectedTripId && allTrips.length > 0) {
+      const trip = allTrips.find(trip => trip.id === selectedTripId);
+      setSelectedTrip(trip || null);
+    } else {
+      setSelectedTrip(null);
+    }
+  }, [selectedTripId, allTrips]);
+
+  const handleCloseTripDetail = () => {
+    navigate('/explore');
+  };
+
+  useEffect(() => {
     applyFilters();
   }, [filters, allTrips]);
 
   const applyFilters = () => {
     let filtered = [...allTrips];
     
-    // Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(trip => 
@@ -165,12 +183,10 @@ const ExplorePage: React.FC = () => {
       );
     }
     
-    // Apply difficulty filter
     if (filters.difficulty && filters.difficulty !== 'all-difficulties') {
       filtered = filtered.filter(trip => trip.difficulty === filters.difficulty);
     }
     
-    // Apply duration filter
     if (filters.duration && filters.duration !== 'all-durations') {
       switch (filters.duration) {
         case 'short':
@@ -185,7 +201,6 @@ const ExplorePage: React.FC = () => {
       }
     }
     
-    // Apply sorting
     switch (filters.sortBy) {
       case 'rating':
         filtered.sort((a, b) => b.averageRating - a.averageRating);
@@ -220,6 +235,10 @@ const ExplorePage: React.FC = () => {
       sortBy: 'rating'
     });
   };
+
+  if (selectedTrip) {
+    return <TripDetailPage tripData={selectedTrip} onClose={handleCloseTripDetail} />;
+  }
 
   return (
     <Layout>
