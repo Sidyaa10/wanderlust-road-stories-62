@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin, Star, Clock, Calendar, User, MessageSquare } from 'lucide-react';
@@ -50,13 +49,11 @@ const TripDetailPage: React.FC = () => {
       setSubmittingReview(true);
       await api.addRating(trip.id, newRating, reviewComment);
       
-      // Refetch the trip to get updated ratings
       const updatedTrip = await api.getTripById(trip.id);
       if (updatedTrip) {
         setTrip(updatedTrip);
       }
       
-      // Reset form
       setReviewComment('');
       setNewRating(5);
       
@@ -338,16 +335,9 @@ const TripDetailPage: React.FC = () => {
           <div>
             <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 sticky top-24">
               <div className="p-6">
-                <div className="flex items-center mb-6">
-                  <img 
-                    src={trip.author.avatar} 
-                    alt={trip.author.name} 
-                    className="h-12 w-12 rounded-full mr-3"
-                  />
-                  <div>
-                    <p className="font-medium">Created by</p>
-                    <p className="text-forest-700">{trip.author.name}</p>
-                  </div>
+                <div className="mb-6">
+                  <p className="font-medium">Created by</p>
+                  <p className="text-forest-700">{trip.author.name}</p>
                 </div>
                 
                 <Separator className="mb-6" />
