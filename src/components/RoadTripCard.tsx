@@ -40,14 +40,7 @@ const RoadTripCard: React.FC<RoadTripCardProps> = ({ trip }) => {
         
         <div className="p-4">
           <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center space-x-2">
-              <img 
-                src={trip.author.avatar} 
-                alt={trip.author.name} 
-                className="h-7 w-7 rounded-full"
-              />
-              <span className="text-sm text-gray-600">{trip.author.name}</span>
-            </div>
+            <span className="text-sm text-gray-600">{trip.author.name}</span>
             <div className="flex items-center">
               <Star className="h-4 w-4 text-yellow-500 mr-1" />
               <span className="text-sm font-medium">{trip.averageRating.toFixed(1)}</span>
