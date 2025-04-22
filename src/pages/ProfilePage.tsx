@@ -75,14 +75,6 @@ const ProfilePage: React.FC = () => {
       <div className="bg-forest-700 py-16">
         <div className="container max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md">
-              <img 
-                src={user?.avatar} 
-                alt={user?.name} 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
             <div className="text-center md:text-left">
               <h1 className="text-3xl font-bold text-white mb-2">{user?.name}</h1>
               <p className="text-lg text-white/80 mb-4">@{user?.username}</p>
