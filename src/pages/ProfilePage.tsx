@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api, User, RoadTrip } from '@/services/api';
@@ -19,6 +18,11 @@ const ProfilePage: React.FC = () => {
         
         // Get current user
         const userData = await api.getCurrentUser();
+        
+        // Update the user's name
+        userData.name = "Sid Kadam";
+        userData.username = "sid.kadam";
+        
         setUser(userData);
         
         // Get all trips
@@ -73,28 +77,28 @@ const ProfilePage: React.FC = () => {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md">
               <img 
-                src={user.avatar} 
-                alt={user.name} 
+                src={user?.avatar} 
+                alt={user?.name} 
                 className="w-full h-full object-cover"
               />
             </div>
             
             <div className="text-center md:text-left">
-              <h1 className="text-3xl font-bold text-white mb-2">{user.name}</h1>
-              <p className="text-lg text-white/80 mb-4">@{user.username}</p>
-              <p className="text-white/90 max-w-3xl mb-4">{user.bio}</p>
+              <h1 className="text-3xl font-bold text-white mb-2">{user?.name}</h1>
+              <p className="text-lg text-white/80 mb-4">@{user?.username}</p>
+              <p className="text-white/90 max-w-3xl mb-4">{user?.bio}</p>
               
               <div className="flex flex-wrap justify-center md:justify-start gap-6">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-white">{user.followers}</p>
+                  <p className="text-2xl font-bold text-white">{user?.followers}</p>
                   <p className="text-sm text-white/80">Followers</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-white">{user.following}</p>
+                  <p className="text-2xl font-bold text-white">{user?.following}</p>
                   <p className="text-sm text-white/80">Following</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-white">{user.createdTrips}</p>
+                  <p className="text-2xl font-bold text-white">{user?.createdTrips}</p>
                   <p className="text-sm text-white/80">Trips</p>
                 </div>
               </div>
