@@ -61,12 +61,12 @@ const ExplorePage: React.FC = () => {
     }
     
     // Apply difficulty filter
-    if (filters.difficulty) {
+    if (filters.difficulty && filters.difficulty !== 'all-difficulties') {
       filtered = filtered.filter(trip => trip.difficulty === filters.difficulty);
     }
     
     // Apply duration filter
-    if (filters.duration) {
+    if (filters.duration && filters.duration !== 'all-durations') {
       switch (filters.duration) {
         case 'short':
           filtered = filtered.filter(trip => trip.duration <= 3);
@@ -151,7 +151,7 @@ const ExplorePage: React.FC = () => {
                   <SelectValue placeholder="Difficulty" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Difficulties</SelectItem>
+                  <SelectItem value="all-difficulties">All Difficulties</SelectItem>
                   <SelectItem value="Easy">Easy</SelectItem>
                   <SelectItem value="Moderate">Moderate</SelectItem>
                   <SelectItem value="Hard">Hard</SelectItem>
@@ -168,7 +168,7 @@ const ExplorePage: React.FC = () => {
                   <SelectValue placeholder="Duration" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Durations</SelectItem>
+                  <SelectItem value="all-durations">All Durations</SelectItem>
                   <SelectItem value="short">Short (1-3 days)</SelectItem>
                   <SelectItem value="medium">Medium (4-7 days)</SelectItem>
                   <SelectItem value="long">Long (8+ days)</SelectItem>
