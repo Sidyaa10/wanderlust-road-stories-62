@@ -70,10 +70,22 @@ export const api = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Must be logged in to create a trip');
 
+    // Extract only the fields that the road_trips table accepts
+    const { title, description, image, distance, duration, location, difficulty } = tripData;
+    
+    // Ensure title is provided as it's required by the database
+    if (!title) throw new Error('Trip title is required');
+
     const { data, error } = await supabase
       .from('road_trips')
       .insert({
-        ...tripData,
+        title,
+        description,
+        image,
+        distance,
+        duration,
+        location,
+        difficulty,
         author_id: user.id
       })
       .select()
