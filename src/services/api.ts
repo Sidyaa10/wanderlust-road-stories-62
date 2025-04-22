@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase';
+
+import { supabase } from '@/integrations/supabase/client';
 import { User, RoadTrip, RoadStop, Rating } from './types';
 
 // Helper function to convert snake_case to camelCase for frontend consumption
@@ -32,39 +33,6 @@ const formatResponseData = (data: any): any => {
   return formattedData;
 };
 
-const sampleTrips: Partial<RoadTrip>[] = [
-  {
-    title: "Pacific Coast Highway Adventure",
-    description: "Experience the breathtaking beauty of California's coastline on this iconic road trip from San Francisco to Los Angeles.",
-    image: "https://images.unsplash.com/photo-1540820658190-4d1c2d4a1731?w=800",
-    distance: 750,
-    duration: 5,
-    location: "California, USA",
-    difficulty: "Moderate",
-    average_rating: 4.8
-  },
-  {
-    title: "Iceland Ring Road Journey",
-    description: "Circle the entire island of Iceland on Route 1, experiencing waterfalls, glaciers, and volcanic landscapes.",
-    image: "https://images.unsplash.com/photo-1520769490916-ee4266dd5b24?w=800",
-    distance: 1332,
-    duration: 7,
-    location: "Iceland",
-    difficulty: "Hard",
-    average_rating: 4.9
-  },
-  {
-    title: "Great Ocean Road Expedition",
-    description: "Drive along Australia's southeastern coast to see the Twelve Apostles and other natural wonders.",
-    image: "https://images.unsplash.com/photo-1529108190281-9a4f620bc2d8?w=800",
-    distance: 243,
-    duration: 3,
-    location: "Victoria, Australia",
-    difficulty: "Easy",
-    average_rating: 4.7
-  }
-];
-
 export const api = {
   // Road Trips
   getTrips: async (): Promise<RoadTrip[]> => {
@@ -72,39 +40,14 @@ export const api = {
       .from('road_trips')
       .select(`
         *,
-        author:users(*),
+        author:profiles(*),
         stops:road_stops(*),
         ratings:ratings(*)
       `);
     
     if (error) throw error;
     
-    // If no trips found, add sample trips
-    if (!data || data.length === 0) {
-      // Add sample trips one by one
-      for (const trip of sampleTrips) {
-        const { error: insertError } = await supabase
-          .from('road_trips')
-          .insert(trip);
-          
-        if (insertError) console.warn('Error inserting sample trip:', insertError);
-      }
-      
-      // Fetch trips again after inserting samples
-      const { data: newData, error: fetchError } = await supabase
-        .from('road_trips')
-        .select(`
-          *,
-          author:users(*),
-          stops:road_stops(*),
-          ratings:ratings(*)
-        `);
-      
-      if (fetchError) throw fetchError;
-      return formatResponseData(newData || []) as RoadTrip[];
-    }
-    
-    return formatResponseData(data) as RoadTrip[];
+    return formatResponseData(data || []) as RoadTrip[];
   },
   
   getTripById: async (id: string): Promise<RoadTrip | undefined> => {
@@ -112,9 +55,9 @@ export const api = {
       .from('road_trips')
       .select(`
         *,
-        author:users(*),
+        author:profiles(*),
         stops:road_stops(*),
-        ratings:ratings(*)
+        ratings:ratings(*, user:profiles(*))
       `)
       .eq('id', id)
       .single();
@@ -124,9 +67,15 @@ export const api = {
   },
   
   createTrip: async (tripData: Partial<RoadTrip>): Promise<RoadTrip> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Must be logged in to create a trip');
+
     const { data, error } = await supabase
       .from('road_trips')
-      .insert(tripData)
+      .insert({
+        ...tripData,
+        author_id: user.id
+      })
       .select()
       .single();
     
@@ -137,23 +86,17 @@ export const api = {
   // Users
   getUsers: async (): Promise<User[]> => {
     const { data, error } = await supabase
-      .from('users')
+      .from('profiles')
       .select('*');
     
     if (error) throw error;
     
-    // Add createdTrips property (can be calculated from a query in a real implementation)
-    const formattedData = formatResponseData(data).map((user: User) => ({
-      ...user,
-      createdTrips: 0 // Default value, would be calculated in a real implementation
-    }));
-    
-    return formattedData as User[];
+    return formatResponseData(data) as User[];
   },
   
   getUserById: async (id: string): Promise<User | undefined> => {
     const { data, error } = await supabase
-      .from('users')
+      .from('profiles')
       .select('*')
       .eq('id', id)
       .single();
@@ -161,8 +104,6 @@ export const api = {
     if (error) throw error;
     
     const formattedData = formatResponseData(data);
-    formattedData.createdTrips = 0; // Default value, would be calculated in a real implementation
-    
     return formattedData as User;
   },
   
@@ -171,17 +112,14 @@ export const api = {
     if (!user) throw new Error('No current user');
     
     const { data, error } = await supabase
-      .from('users')
+      .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single();
     
     if (error) throw error;
     
-    const formattedData = formatResponseData(data);
-    formattedData.createdTrips = 0; // Default value, would be calculated in a real implementation
-    
-    return formattedData as User;
+    return formatResponseData(data) as User;
   },
   
   // Ratings & Reviews
@@ -197,7 +135,10 @@ export const api = {
         rating,
         comment
       })
-      .select()
+      .select(`
+        *,
+        user:profiles(*)
+      `)
       .single();
     
     if (error) throw error;

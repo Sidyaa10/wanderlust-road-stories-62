@@ -8,7 +8,7 @@ export interface User {
   followers: number;
   following: number;
   created_at: string;
-  createdTrips?: number; // Add this optional property to fix ProfilePage error
+  createdTrips?: number;
 }
 
 export interface RoadTrip {
@@ -50,5 +50,5 @@ export interface Rating {
   rating: number;
   comment: string;
   created_at: string;
-  createdAt?: string; // Add this for compatibility
+  createdAt?: string;
 }

@@ -9,7 +9,169 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar: string | null
+          bio: string | null
+          created_at: string | null
+          followers: number | null
+          following: number | null
+          id: string
+          name: string | null
+          username: string
+        }
+        Insert: {
+          avatar?: string | null
+          bio?: string | null
+          created_at?: string | null
+          followers?: number | null
+          following?: number | null
+          id: string
+          name?: string | null
+          username: string
+        }
+        Update: {
+          avatar?: string | null
+          bio?: string | null
+          created_at?: string | null
+          followers?: number | null
+          following?: number | null
+          id?: string
+          name?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
+      ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number | null
+          trip_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          trip_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          trip_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "road_trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      road_stops: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          image: string | null
+          location: string | null
+          name: string
+          position: number | null
+          trip_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image?: string | null
+          location?: string | null
+          name: string
+          position?: number | null
+          trip_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image?: string | null
+          location?: string | null
+          name?: string
+          position?: number | null
+          trip_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "road_stops_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "road_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      road_trips: {
+        Row: {
+          author_id: string | null
+          created_at: string | null
+          description: string | null
+          difficulty: string | null
+          distance: number | null
+          duration: number | null
+          id: string
+          image: string | null
+          location: string | null
+          title: string
+        }
+        Insert: {
+          author_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          distance?: number | null
+          duration?: number | null
+          id?: string
+          image?: string | null
+          location?: string | null
+          title: string
+        }
+        Update: {
+          author_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          distance?: number | null
+          duration?: number | null
+          id?: string
+          image?: string | null
+          location?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "road_trips_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
