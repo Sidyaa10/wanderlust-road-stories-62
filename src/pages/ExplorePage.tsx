@@ -7,6 +7,89 @@ import RoadTripCard from '@/components/RoadTripCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+
+// Sample fallback data
+const sampleTrips: RoadTrip[] = [
+  {
+    id: '1',
+    title: "Pacific Coast Highway Adventure",
+    description: "Experience the breathtaking beauty of California's coastline on this iconic road trip from San Francisco to Los Angeles.",
+    image: "https://images.unsplash.com/photo-1540820658190-4d1c2d4a1731?w=800",
+    distance: 750,
+    duration: 5,
+    location: "California, USA",
+    difficulty: "Moderate",
+    average_rating: 4.8,
+    averageRating: 4.8,
+    created_at: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    author: {
+      id: '1',
+      username: 'roadtripper',
+      name: 'Road Tripper',
+      bio: 'Adventure enthusiast',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+      followers: 120,
+      following: 80,
+      created_at: new Date().toISOString(),
+    },
+    stops: [],
+    ratings: []
+  },
+  {
+    id: '2',
+    title: "Iceland Ring Road Journey",
+    description: "Circle the entire island of Iceland on Route 1, experiencing waterfalls, glaciers, and volcanic landscapes.",
+    image: "https://images.unsplash.com/photo-1520769490916-ee4266dd5b24?w=800",
+    distance: 1332,
+    duration: 7,
+    location: "Iceland",
+    difficulty: "Hard",
+    average_rating: 4.9,
+    averageRating: 4.9,
+    created_at: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    author: {
+      id: '2',
+      username: 'nordic_explorer',
+      name: 'Nordic Explorer',
+      bio: 'Cold climate adventurer',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
+      followers: 250,
+      following: 120,
+      created_at: new Date().toISOString(),
+    },
+    stops: [],
+    ratings: []
+  },
+  {
+    id: '3',
+    title: "Great Ocean Road Expedition",
+    description: "Drive along Australia's southeastern coast to see the Twelve Apostles and other natural wonders.",
+    image: "https://images.unsplash.com/photo-1529108190281-9a4f620bc2d8?w=800",
+    distance: 243,
+    duration: 3,
+    location: "Victoria, Australia",
+    difficulty: "Easy",
+    average_rating: 4.7,
+    averageRating: 4.7,
+    created_at: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    author: {
+      id: '3',
+      username: 'aussie_traveler',
+      name: 'Aussie Traveler',
+      bio: 'Down under explorer',
+      avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=400',
+      followers: 180,
+      following: 95,
+      created_at: new Date().toISOString(),
+    },
+    stops: [],
+    ratings: []
+  }
+];
 
 type FilterState = {
   search: string;
@@ -19,22 +102,44 @@ const ExplorePage: React.FC = () => {
   const [allTrips, setAllTrips] = useState<RoadTrip[]>([]);
   const [filteredTrips, setFilteredTrips] = useState<RoadTrip[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [useLocalData, setUseLocalData] = useState<boolean>(false);
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     difficulty: '',
     duration: '',
     sortBy: 'rating'
   });
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchTrips = async () => {
       try {
         setLoading(true);
         const trips = await api.getTrips();
-        setAllTrips(trips);
-        setFilteredTrips(trips);
+        
+        // If no trips returned, use sample data
+        if (trips.length === 0) {
+          setUseLocalData(true);
+          setAllTrips(sampleTrips);
+          setFilteredTrips(sampleTrips);
+          toast({
+            title: "Using sample data",
+            description: "No trips found in the database. Using sample trips instead.",
+          });
+        } else {
+          setAllTrips(trips);
+          setFilteredTrips(trips);
+        }
       } catch (error) {
         console.error('Error fetching trips:', error);
+        setUseLocalData(true);
+        setAllTrips(sampleTrips);
+        setFilteredTrips(sampleTrips);
+        toast({
+          title: "Connection error",
+          description: "Could not connect to the database. Using sample trips instead.",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
@@ -202,6 +307,15 @@ const ExplorePage: React.FC = () => {
             </Select>
           </div>
         </div>
+        
+        {useLocalData && (
+          <div className="bg-yellow-50 border border-yellow-100 rounded-md p-4 mb-6">
+            <p className="text-yellow-800 text-sm">
+              Using sample trip data. {" "}
+              {filteredTrips.length === 0 ? "Try clearing your filters to see the sample trips." : ""}
+            </p>
+          </div>
+        )}
         
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
