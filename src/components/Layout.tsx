@@ -27,7 +27,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <span className="text-xl font-bold text-forest-700">Wanderlust</span>
               </Link>
             </div>
-            
             <div className="hidden md:flex items-center space-x-4">
               <Link 
                 to="/" 
@@ -53,8 +52,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 Profile
               </Link>
+              <Link 
+                to="/about" 
+                className={cn("nav-link", isActive("/about") && "active")}
+              >
+                About Us
+              </Link>
             </div>
-            
             <div className="flex items-center space-x-4">
               <Link to="/create" className="btn-primary flex items-center space-x-1">
                 <Plus className="h-4 w-4" />
@@ -64,12 +68,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </div>
       </header>
-      
       {/* Main content */}
       <main className="flex-grow">
         {children}
       </main>
-      
       {/* Footer */}
       <footer className="bg-forest-800 text-white py-12">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -88,6 +90,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <li><Link to="/explore" className="hover:text-white">Explore Trips</Link></li>
                 <li><Link to="/create" className="hover:text-white">Create a Trip</Link></li>
                 <li><Link to="/profile" className="hover:text-white">My Profile</Link></li>
+                <li><Link to="/about" className="hover:text-white">About Us</Link></li>
               </ul>
             </div>
             <div>
@@ -117,11 +120,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <p className="mt-4 text-sm text-gray-300">
                 © 2025 Wanderlust Road Stories. All rights reserved.
               </p>
+              <div className="text-xs text-gray-300 mt-2">
+                Built by <span className="font-semibold text-white">Siddhesh Anand Kadam</span>
+              </div>
             </div>
           </div>
         </div>
       </footer>
-      
       {/* Mobile navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border z-10">
         <div className="flex justify-around">
@@ -140,6 +145,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Link to="/profile" className={cn("flex flex-col items-center py-2 px-3", isActive("/profile") && "text-forest-700")}>
             <User className="h-6 w-6" />
             <span className="text-xs mt-1">Profile</span>
+          </Link>
+          <Link to="/about" className={cn("flex flex-col items-center py-2 px-3", isActive("/about") && "text-forest-700")}>
+            <MapPin className="h-6 w-6" />
+            <span className="text-xs mt-1">About</span>
           </Link>
         </div>
       </nav>
