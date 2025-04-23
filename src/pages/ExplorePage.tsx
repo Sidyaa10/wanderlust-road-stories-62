@@ -10,6 +10,18 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
 import TripDetailPage from './TripDetailPage';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import TripComments from '@/components/TripComments';
+
+const BASE_AUTHOR = {
+  id: 'sidkadam',
+  username: 'sidkadam',
+  name: 'Sid Kadam',
+  bio: "Web App Developer",
+  avatar: "https://avatars.githubusercontent.com/u/4149056?v=4",
+  followers: 0,
+  following: 0,
+  created_at: new Date().toISOString(),
+};
 
 const sampleTrips: RoadTrip[] = [
   {
@@ -25,16 +37,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.8,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '4',
-      username: 'euro_wanderer',
-      name: 'Euro Wanderer',
-      bio: 'Lover of European landscapes',
-      avatar: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400",
-      followers: 90,
-      following: 48,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -51,16 +54,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.7,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '5',
-      username: 'italian_roamer',
-      name: 'Italian Roamer',
-      bio: 'Dolce vita connoisseur',
-      avatar: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400',
-      followers: 110,
-      following: 34,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -77,16 +71,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.9,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '6',
-      username: 'fjord_friend',
-      name: 'Fjord Friend',
-      bio: 'Scandanavia explorer',
-      avatar: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=400',
-      followers: 104,
-      following: 54,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -103,16 +88,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.7,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '3',
-      username: 'aussie_traveler',
-      name: 'Aussie Traveler',
-      bio: 'Down under explorer',
-      avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=400',
-      followers: 180,
-      following: 95,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -129,16 +105,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.6,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '8',
-      username: 'jp_drives',
-      name: 'JP Drives',
-      bio: 'Japan explorer',
-      avatar: 'https://images.unsplash.com/photo-1517363898873-c9230949a976?w=400',
-      followers: 90,
-      following: 40,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -155,16 +122,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.8,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '9',
-      username: 'nz_roadie',
-      name: 'NZ Roadie',
-      bio: 'Kia ora, let\'s explore!',
-      avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=400',
-      followers: 112,
-      following: 53,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -181,16 +139,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.7,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '10',
-      username: 'classic_usa',
-      name: 'Classic USA',
-      bio: 'American historian',
-      avatar: 'https://images.unsplash.com/photo-1519340333755-c9230949a976?w=400',
-      followers: 190,
-      following: 114,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -207,16 +156,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.9,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '11',
-      username: 'andes_seeker',
-      name: 'Andes Seeker',
-      bio: 'South American adventurer',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-      followers: 132,
-      following: 65,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -233,16 +173,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.8,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '12',
-      username: 'canada_rover',
-      name: 'Canada Rover',
-      bio: 'Great white North expert',
-      avatar: 'https://images.unsplash.com/photo-1454023492550-5696f8ff10e1?w=400',
-      followers: 81,
-      following: 41,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -259,16 +190,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.8,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '1',
-      username: 'roadtripper',
-      name: 'Road Tripper',
-      bio: 'Adventure enthusiast',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
-      followers: 120,
-      following: 80,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   },
@@ -285,16 +207,7 @@ const sampleTrips: RoadTrip[] = [
     averageRating: 4.9,
     created_at: new Date().toISOString(),
     createdAt: new Date().toISOString(),
-    author: {
-      id: '2',
-      username: 'nordic_explorer',
-      name: 'Nordic Explorer',
-      bio: 'Cold climate adventurer',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-      followers: 250,
-      following: 120,
-      created_at: new Date().toISOString(),
-    },
+    author: { ...BASE_AUTHOR },
     stops: [],
     ratings: []
   }
@@ -605,7 +518,10 @@ const ExplorePage: React.FC = () => {
         ) : filteredTrips.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTrips.map((trip) => (
-              <RoadTripCard key={trip.id} trip={trip} />
+              <div key={trip.id} className="flex flex-col">
+                <RoadTripCard trip={trip} />
+                <TripComments tripId={trip.id} />
+              </div>
             ))}
           </div>
         ) : (
