@@ -5,6 +5,7 @@ import { api, RoadTrip } from '@/services/api';
 import Layout from '@/components/Layout';
 import RoadTripCard from '@/components/RoadTripCard';
 import { Separator } from '@/components/ui/separator';
+import TopRoadStories from '@/components/TopRoadStories';
 
 const HomePage: React.FC = () => {
   const [featuredTrips, setFeaturedTrips] = useState<RoadTrip[]>([]);
