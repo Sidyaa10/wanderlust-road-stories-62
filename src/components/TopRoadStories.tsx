@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import StoryModal from "./StoryModal";
 
+// Real stories by Sid Kadam, as requested:
 const stories = [
   {
     title: "Cruising the French Riviera",
@@ -95,4 +96,3 @@ const TopRoadStories: React.FC = () => {
 };
 
 export default TopRoadStories;
-
