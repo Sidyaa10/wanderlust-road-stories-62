@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Compass } from 'lucide-react';
@@ -62,6 +61,9 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Top Road Stories */}
+      <TopRoadStories />
 
       {/* Featured Trips */}
       <section className="py-16 bg-gray-50">
