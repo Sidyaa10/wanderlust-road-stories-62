@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Star, Clock, Calendar, User, MessageSquare, ArrowLeft } from 'lucide-react';
+import { MapPin, Star, Clock, Calendar, User, MessageSquare, ArrowLeft, Map } from 'lucide-react';
 import { format } from 'date-fns';
 import { api, RoadTrip, Rating } from '@/services/api';
 import Layout from '@/components/Layout';
@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import MapView from '@/components/MapView';
 
 interface TripDetailPageProps {
   tripData?: RoadTrip;
@@ -186,10 +187,11 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
       <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <Tabs defaultValue="overview" className="mb-12">
+            <Tabs defaultValue="overview" className="mb-12" onValueChange={setActiveTab}>
               <TabsList className="mb-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="stops">Stops</TabsTrigger>
+                <TabsTrigger value="map">Map View</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
               
@@ -286,6 +288,25 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="map">
+                <div>
+                  <h2 className="text-2xl font-bold mb-6">Satellite Route View</h2>
+                  
+                  <MapView 
+                    stops={trip.stops}
+                    startLocation={trip.stops[0]?.location || trip.location}
+                    endLocation={trip.stops[trip.stops.length - 1]?.location || trip.location}
+                  />
+                  
+                  <div className="mt-6 bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
+                    <p className="flex items-center gap-2">
+                      <Map className="h-4 w-4" />
+                      <span>Route map shows approximate path and stops. Actual routes may vary.</span>
+                    </p>
                   </div>
                 </div>
               </TabsContent>
