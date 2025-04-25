@@ -1,12 +1,13 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { RoadStop } from '@/services/types';
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin, Navigation, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // You'll need to get a Mapbox access token from https://mapbox.com/
-const MAPBOX_TOKEN = "pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNsbjRxbTB1MzBwbmoybG51bmZ1YnGGWMifQ.0OGn9k9LMhHlY_zhxv_vLw";
+const MAPBOX_TOKEN = "pk.eyJ1IjoibG92YWJsZS1kZW1vIiwiYSI6ImNsbjRxbTB1MzBwbmoybG51bmZ1YnF3aDMifQ.0OGn9k9LMhHlY_zhxv_vLw";
 
 interface MapViewProps {
   stops: RoadStop[];
@@ -23,70 +24,83 @@ const MapView: React.FC<MapViewProps> = ({
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current) return;
     
-    // Initialize mapbox
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    
-    const initialCoordinates = stops.length > 0 
-      ? getCoordinatesFromStop(stops[0]) 
-      : [0, 0];
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v12', // Satellite streets style
-      center: initialCoordinates as [number, number],
-      zoom: stops.length === 1 ? 12 : 8,
-      interactive: interactiveMap,
-    });
-    
-    // Add navigation controls if interactive
-    if (interactiveMap) {
-      map.current.addControl(
-        new mapboxgl.NavigationControl({
-          visualizePitch: true,
-        }),
-        'top-right'
-      );
-    }
-
-    map.current.on('load', () => {
-      if (!map.current) return;
+    try {
+      // Initialize mapbox
+      mapboxgl.accessToken = MAPBOX_TOKEN;
       
-      // Add markers for all stops
-      addStopsToMap(map.current, stops);
+      const initialCoordinates = stops.length > 0 
+        ? getCoordinatesFromStop(stops[0]) 
+        : [0, 0];
       
-      // Fit bounds to show all stops
-      fitMapToStops(map.current, stops);
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/satellite-streets-v12', // Satellite streets style
+        center: initialCoordinates as [number, number],
+        zoom: stops.length === 1 ? 12 : 8,
+        interactive: interactiveMap,
+      });
       
-      // Add terrain if available
-      try {
-        map.current.addSource('mapbox-dem', {
-          'type': 'raster-dem',
-          'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          'tileSize': 512,
-          'maxzoom': 14
-        });
-        
-        // Add 3D terrain
-        map.current.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-        
-        // Add sky layer for realistic atmosphere
-        map.current.addLayer({
-          'id': 'sky',
-          'type': 'sky',
-          'paint': {
-            'sky-type': 'atmosphere',
-            'sky-atmosphere-sun': [0.0, 0.0],
-            'sky-atmosphere-sun-intensity': 15
-          }
-        });
-      } catch (err) {
-        console.log('Could not add terrain:', err);
+      // Add navigation controls if interactive
+      if (interactiveMap) {
+        map.current.addControl(
+          new mapboxgl.NavigationControl({
+            visualizePitch: true,
+          }),
+          'top-right'
+        );
       }
-    });
+
+      map.current.on('load', () => {
+        if (!map.current) return;
+        
+        // Add markers for all stops
+        addStopsToMap(map.current, stops);
+        
+        // Fit bounds to show all stops
+        fitMapToStops(map.current, stops);
+        
+        // Add terrain if available
+        try {
+          map.current.addSource('mapbox-dem', {
+            'type': 'raster-dem',
+            'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+            'tileSize': 512,
+            'maxzoom': 14
+          });
+          
+          // Add 3D terrain
+          map.current.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+          
+          // Add sky layer for realistic atmosphere
+          map.current.addLayer({
+            'id': 'sky',
+            'type': 'sky',
+            'paint': {
+              'sky-type': 'atmosphere',
+              'sky-atmosphere-sun': [0.0, 0.0],
+              'sky-atmosphere-sun-intensity': 15
+            }
+          });
+        } catch (err) {
+          console.log('Could not add terrain:', err);
+        }
+      });
+      
+      // Handle map errors
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e);
+        setMapError('There was an error loading the map. Please try again later.');
+      });
+      
+    } catch (err) {
+      console.error('Error initializing map:', err);
+      setMapError('Could not initialize the map. Please check your connection and try again.');
+    }
     
     // Cleanup
     return () => {
@@ -224,6 +238,18 @@ const MapView: React.FC<MapViewProps> = ({
       essential: true  // Make sure it happens even on reduced motion settings
     });
   };
+
+  // Show error message if map failed to load
+  if (mapError) {
+    return (
+      <div className="relative w-full h-[500px] rounded-lg overflow-hidden flex items-center justify-center bg-gray-100">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          <AlertDescription>{mapError}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-[500px] rounded-lg overflow-hidden shadow-lg">

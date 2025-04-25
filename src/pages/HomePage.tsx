@@ -1,42 +1,17 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { Compass } from 'lucide-react';
-import { api, RoadTrip } from '@/services/api';
 import Layout from '@/components/Layout';
-import RoadTripCard from '@/components/RoadTripCard';
 import { Separator } from '@/components/ui/separator';
-import TopRoadStories from '@/components/TopRoadStories';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Lazy load components to improve initial load time
+const TopRoadStories = lazy(() => import('@/components/TopRoadStories'));
+const RoadTripCard = lazy(() => import('@/components/RoadTripCard'));
 
 const HomePage: React.FC = () => {
-  const [featuredTrips, setFeaturedTrips] = useState<RoadTrip[]>([]);
-  const [recentTrips, setRecentTrips] = useState<RoadTrip[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchTrips = async () => {
-      try {
-        setLoading(true);
-        const allTrips = await api.getTrips();
-        
-        // Get top rated trips for featured section
-        const sortedByRating = [...allTrips].sort((a, b) => b.averageRating - a.averageRating);
-        setFeaturedTrips(sortedByRating.slice(0, 3));
-        
-        // Get latest trips
-        const sortedByDate = [...allTrips].sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        setRecentTrips(sortedByDate.slice(0, 6));
-      } catch (error) {
-        console.error('Error fetching trips:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTrips();
-  }, []);
-
   return (
     <Layout>
       {/* Hero Section */}
@@ -64,33 +39,9 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Top Road Stories */}
-      <TopRoadStories />
-
-      {/* Featured Trips */}
-      <section className="py-16 bg-gray-50">
-        <div className="container max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Featured Road Trips</h2>
-            <Link to="/explore" className="text-forest-700 hover:text-forest-800 font-medium">
-              View all →
-            </Link>
-          </div>
-          
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-80 rounded-xl bg-gray-200 animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredTrips.map((trip) => (
-                <RoadTripCard key={trip.id} trip={trip} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <Suspense fallback={<LoadingStoriesPlaceholder />}>
+        <TopRoadStories />
+      </Suspense>
 
       {/* How It Works */}
       <section className="py-16 bg-white">
@@ -138,95 +89,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Recent Trips */}
-      <section className="py-16 bg-gray-50">
-        <div className="container max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Recent Adventures</h2>
-            <Link to="/explore" className="text-forest-700 hover:text-forest-800 font-medium">
-              View all →
-            </Link>
-          </div>
-          
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="h-80 rounded-xl bg-gray-200 animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recentTrips.map((trip) => (
-                <RoadTripCard key={trip.id} trip={trip} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-16 bg-white">
-        <div className="container max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">What Our Community Says</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
-              <p className="text-gray-600 mb-4">
-                "Thanks to Wanderlust, I discovered the most amazing Pacific Coast Highway route with all the best stops. The trip was even better than I imagined!"
-              </p>
-              <Separator className="mb-4" />
-              <div className="flex items-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&auto=format&fit=crop" 
-                  alt="User avatar" 
-                  className="h-10 w-10 rounded-full mr-3"
-                />
-                <div>
-                  <p className="font-medium">Jessica Williams</p>
-                  <p className="text-sm text-gray-500">Adventure Enthusiast</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
-              <p className="text-gray-600 mb-4">
-                "The user-generated stops along Route 66 were invaluable. I found hidden gems I would have never discovered on my own. Highly recommend!"
-              </p>
-              <Separator className="mb-4" />
-              <div className="flex items-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&auto=format&fit=crop" 
-                  alt="User avatar" 
-                  className="h-10 w-10 rounded-full mr-3"
-                />
-                <div>
-                  <p className="font-medium">Michael Chen</p>
-                  <p className="text-sm text-gray-500">Road Trip Enthusiast</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
-              <p className="text-gray-600 mb-4">
-                "I planned my entire Iceland trip using this platform. The detailed itineraries and honest reviews from other travelers made planning so easy."
-              </p>
-              <Separator className="mb-4" />
-              <div className="flex items-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&auto=format&fit=crop" 
-                  alt="User avatar" 
-                  className="h-10 w-10 rounded-full mr-3"
-                />
-                <div>
-                  <p className="font-medium">Emily Johnson</p>
-                  <p className="text-sm text-gray-500">Travel Blogger</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="py-16 bg-forest-700 text-white">
         <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
@@ -248,5 +110,29 @@ const HomePage: React.FC = () => {
     </Layout>
   );
 };
+
+// Loading placeholder for stories section
+const LoadingStoriesPlaceholder = () => (
+  <section className="py-14 bg-white">
+    <div className="container max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-between items-center mb-8">
+        <Skeleton className="h-10 w-56" />
+        <Skeleton className="h-10 w-28" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
+        {[1, 2, 3].map((idx) => (
+          <div key={idx} className="animate-pulse">
+            <div className="bg-gray-200 h-48 rounded-t-lg"></div>
+            <div className="p-4 space-y-3">
+              <div className="h-6 bg-gray-200 rounded"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/4 mt-2"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
 export default HomePage;
