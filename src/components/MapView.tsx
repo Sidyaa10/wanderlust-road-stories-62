@@ -12,9 +12,15 @@ interface MapViewProps {
   stops: RoadStop[];
   startLocation: string;
   endLocation: string;
+  interactiveMap?: boolean;
 }
 
-const MapView: React.FC<MapViewProps> = ({ stops, startLocation, endLocation }) => {
+const MapView: React.FC<MapViewProps> = ({ 
+  stops, 
+  startLocation, 
+  endLocation, 
+  interactiveMap = true 
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -32,16 +38,19 @@ const MapView: React.FC<MapViewProps> = ({ stops, startLocation, endLocation }) 
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/satellite-streets-v12', // Satellite streets style
       center: initialCoordinates as [number, number],
-      zoom: 8
+      zoom: stops.length === 1 ? 12 : 8,
+      interactive: interactiveMap,
     });
     
-    // Add navigation controls
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-      }),
-      'top-right'
-    );
+    // Add navigation controls if interactive
+    if (interactiveMap) {
+      map.current.addControl(
+        new mapboxgl.NavigationControl({
+          visualizePitch: true,
+        }),
+        'top-right'
+      );
+    }
 
     map.current.on('load', () => {
       if (!map.current) return;
@@ -51,13 +60,39 @@ const MapView: React.FC<MapViewProps> = ({ stops, startLocation, endLocation }) 
       
       // Fit bounds to show all stops
       fitMapToStops(map.current, stops);
+      
+      // Add terrain if available
+      try {
+        map.current.addSource('mapbox-dem', {
+          'type': 'raster-dem',
+          'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          'tileSize': 512,
+          'maxzoom': 14
+        });
+        
+        // Add 3D terrain
+        map.current.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+        
+        // Add sky layer for realistic atmosphere
+        map.current.addLayer({
+          'id': 'sky',
+          'type': 'sky',
+          'paint': {
+            'sky-type': 'atmosphere',
+            'sky-atmosphere-sun': [0.0, 0.0],
+            'sky-atmosphere-sun-intensity': 15
+          }
+        });
+      } catch (err) {
+        console.log('Could not add terrain:', err);
+      }
     });
     
     // Cleanup
     return () => {
       map.current?.remove();
     };
-  }, [stops]);
+  }, [stops, interactiveMap]);
 
   // Helper to extract coordinates from a stop
   const getCoordinatesFromStop = (stop: RoadStop): [number, number] => {
@@ -73,6 +108,17 @@ const MapView: React.FC<MapViewProps> = ({ stops, startLocation, endLocation }) 
   
   // Add all stops to the map
   const addStopsToMap = (mapInstance: mapboxgl.Map, stops: RoadStop[]) => {
+    // Clear existing markers if any
+    const existingMarkers = document.querySelectorAll('.mapboxgl-marker');
+    existingMarkers.forEach(marker => marker.remove());
+    
+    // Clear existing sources and layers if present
+    if (mapInstance.getSource('route')) {
+      mapInstance.removeLayer('route');
+      mapInstance.removeLayer('route-glow');
+      mapInstance.removeSource('route');
+    }
+    
     // Create markers for each stop
     stops.forEach((stop, index) => {
       const coordinates = getCoordinatesFromStop(stop);
@@ -82,7 +128,7 @@ const MapView: React.FC<MapViewProps> = ({ stops, startLocation, endLocation }) 
       markerElement.className = 'flex flex-col items-center';
       
       const pinElement = document.createElement('div');
-      pinElement.className = `w-8 h-8 rounded-full bg-forest-700 flex items-center justify-center text-white text-sm font-bold border-2 border-white shadow-md ${index === 0 ? 'bg-blue-600' : index === stops.length - 1 ? 'bg-red-600' : 'bg-forest-700'}`;
+      pinElement.className = `w-8 h-8 rounded-full ${index === 0 ? 'bg-blue-600' : index === stops.length - 1 ? 'bg-red-600' : 'bg-forest-700'} flex items-center justify-center text-white text-sm font-bold border-2 border-white shadow-md transition-all hover:scale-110`;
       pinElement.textContent = (index + 1).toString();
       
       markerElement.appendChild(pinElement);
@@ -121,22 +167,6 @@ const MapView: React.FC<MapViewProps> = ({ stops, startLocation, endLocation }) 
         }
       });
       
-      mapInstance.addLayer({
-        id: 'route',
-        type: 'line',
-        source: 'route',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#ffffff',
-          'line-width': 4,
-          'line-opacity': 0.8,
-          'line-dasharray': [0.5, 1.5]
-        }
-      });
-      
       // Add glow effect
       mapInstance.addLayer({
         id: 'route-glow',
@@ -151,7 +181,24 @@ const MapView: React.FC<MapViewProps> = ({ stops, startLocation, endLocation }) 
           'line-width': 8,
           'line-opacity': 0.15
         }
-      }, 'route');
+      });
+      
+      // Add route line
+      mapInstance.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': 4,
+          'line-opacity': 0.8,
+          'line-dasharray': [0.5, 1.5]
+        }
+      }, 'route-glow');
     }
   };
   
@@ -166,10 +213,15 @@ const MapView: React.FC<MapViewProps> = ({ stops, startLocation, endLocation }) 
       return bound.extend(coord as mapboxgl.LngLatLike);
     }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
     
+    // Add some padding
+    const padding = { top: 50, bottom: 50, left: 50, right: 50 };
+    
     // Fit the map to the bounds
     mapInstance.fitBounds(bounds, {
-      padding: { top: 50, bottom: 50, left: 50, right: 50 },
-      maxZoom: 15
+      padding,
+      maxZoom: 15,
+      duration: 1000,  // Animate the transition
+      essential: true  // Make sure it happens even on reduced motion settings
     });
   };
 
@@ -182,6 +234,20 @@ const MapView: React.FC<MapViewProps> = ({ stops, startLocation, endLocation }) 
           <span className="font-medium">Route Map</span>
         </div>
       </div>
+      {stops.length > 0 && (
+        <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-3 text-xs">
+          <div className="flex justify-between">
+            <div className="flex items-center">
+              <MapPin className="h-3 w-3 mr-1 text-blue-400" />
+              <span>{startLocation}</span>
+            </div>
+            <div className="flex items-center">
+              <MapPin className="h-3 w-3 mr-1 text-red-400" />
+              <span>{endLocation}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
