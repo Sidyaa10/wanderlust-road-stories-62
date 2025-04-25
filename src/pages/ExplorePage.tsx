@@ -383,158 +383,164 @@ const ExplorePage: React.FC = () => {
     });
   };
 
-  if (selectedTrip) {
-    return <TripDetailPage tripData={selectedTrip} onClose={handleCloseTripDetail} />;
-  }
+  const handleTripClick = (trip: RoadTrip) => {
+    navigate(`/explore?selectedTrip=${trip.id}`);
+  };
 
   return (
     <Layout>
-      <div className="bg-forest-700 py-16">
-        <div className="container max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold text-white mb-6">Explore Road Trips</h1>
-          <p className="text-lg text-white/90 mb-8 max-w-3xl">
-            Discover amazing road trip adventures shared by our community.
-            Find your next journey based on location, difficulty, or duration.
-          </p>
-          <div className="bg-white rounded-lg p-4 flex items-center">
-            <Search className="h-5 w-5 text-gray-400 mr-2" />
-            <Input
-              type="text"
-              placeholder="Search by destination, name, or description..."
-              className="border-0 focus-visible:ring-0"
-              value={filters.search}
-              onChange={handleSearchChange}
-            />
+      {selectedTrip ? (
+        <TripDetailPage tripData={selectedTrip} onClose={handleCloseTripDetail} />
+      ) : (
+        <>
+          <div className="bg-forest-700 py-16">
+            <div className="container max-w-7xl px-4 sm:px-6 lg:px-8">
+              <h1 className="text-4xl font-bold text-white mb-6">Explore Road Trips</h1>
+              <p className="text-lg text-white/90 mb-8 max-w-3xl">
+                Discover amazing road trip adventures shared by our community.
+                Find your next journey based on location, difficulty, or duration.
+              </p>
+              <div className="bg-white rounded-lg p-4 flex items-center">
+                <Search className="h-5 w-5 text-gray-400 mr-2" />
+                <Input
+                  type="text"
+                  placeholder="Search by destination, name, or description..."
+                  className="border-0 focus-visible:ring-0"
+                  value={filters.search}
+                  onChange={handleSearchChange}
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center gap-5 mb-8">
-          <span className="text-sm sm:text-base font-medium min-w-[68px]">Region:</span>
-          <ToggleGroup
-            type="single"
-            value={filters.region}
-            onValueChange={val => {
-              if (val) setFilters(prev => ({ ...prev, region: val }));
-            }}
-            className="rounded-lg border bg-muted shadow-sm gap-0"
-          >
-            {REGION_BUTTONS.map((btn) => (
-              <ToggleGroupItem
-                key={btn.value}
-                value={btn.value}
-                className={`px-5 py-2 data-[state=on]:bg-gray-100 data-[state=on]:text-black
+          <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex items-center gap-5 mb-8">
+              <span className="text-sm sm:text-base font-medium min-w-[68px]">Region:</span>
+              <ToggleGroup
+                type="single"
+                value={filters.region}
+                onValueChange={val => {
+                  if (val) setFilters(prev => ({ ...prev, region: val }));
+                }}
+                className="rounded-lg border bg-muted shadow-sm gap-0"
+              >
+                {REGION_BUTTONS.map((btn) => (
+                  <ToggleGroupItem
+                    key={btn.value}
+                    value={btn.value}
+                    className={`px-5 py-2 data-[state=on]:bg-gray-100 data-[state=on]:text-black
                    text-gray-700 font-semibold rounded-none border-r last:border-r-0 
                    border-gray-200 text-base hover:bg-gray-50 transition-all`}
-                style={{
-                  borderTopLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
-                  borderBottomLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
-                  borderTopRightRadius: btn.value === "rest" ? "0.5rem" : undefined,
-                  borderBottomRightRadius: btn.value === "rest" ? "0.5rem" : undefined
-                }}
-              >
-                {btn.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </div>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div className="flex flex-wrap gap-4">
-            <div className="w-full sm:w-auto">
-              <Select
-                value={filters.difficulty}
-                onValueChange={(value) => handleFilterChange('difficulty', value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-difficulties">All Difficulties</SelectItem>
-                  <SelectItem value="Easy">Easy</SelectItem>
-                  <SelectItem value="Moderate">Moderate</SelectItem>
-                  <SelectItem value="Hard">Hard</SelectItem>
-                </SelectContent>
-              </Select>
+                    style={{
+                      borderTopLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
+                      borderBottomLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
+                      borderTopRightRadius: btn.value === "rest" ? "0.5rem" : undefined,
+                      borderBottomRightRadius: btn.value === "rest" ? "0.5rem" : undefined
+                    }}
+                  >
+                    {btn.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </div>
-            <div className="w-full sm:w-auto">
-              <Select
-                value={filters.duration}
-                onValueChange={(value) => handleFilterChange('duration', value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-durations">All Durations</SelectItem>
-                  <SelectItem value="short">Short (1-3 days)</SelectItem>
-                  <SelectItem value="medium">Medium (4-7 days)</SelectItem>
-                  <SelectItem value="long">Long (8+ days)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              variant="outline"
-              onClick={clearFilters}
-              className="whitespace-nowrap"
-            >
-              Clear Filters
-            </Button>
-          </div>
-          <div className="w-full sm:w-auto">
-            <Select
-              value={filters.sortBy}
-              onValueChange={(value) => handleFilterChange('sortBy', value)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="rating">Highest Rated</SelectItem>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="distance">Longest Distance</SelectItem>
-                <SelectItem value="duration">Longest Duration</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
-        {useLocalData && (
-          <div className="bg-yellow-50 border border-yellow-100 rounded-md p-4 mb-6">
-            <p className="text-yellow-800 text-sm">
-              Using sample trip data. {" "}
-              {filteredTrips.length === 0 ? "Try clearing your filters to see the sample trips." : ""}
-            </p>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-80 rounded-xl bg-gray-200 animate-pulse" />
-            ))}
-          </div>
-        ) : filteredTrips.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTrips.map((trip) => (
-              <div key={trip.id} className="flex flex-col">
-                <RoadTripCard trip={trip} />
-                <TripComments tripId={trip.id} />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div className="flex flex-wrap gap-4">
+                <div className="w-full sm:w-auto">
+                  <Select
+                    value={filters.difficulty}
+                    onValueChange={(value) => handleFilterChange('difficulty', value)}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-difficulties">All Difficulties</SelectItem>
+                      <SelectItem value="Easy">Easy</SelectItem>
+                      <SelectItem value="Moderate">Moderate</SelectItem>
+                      <SelectItem value="Hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <Select
+                    value={filters.duration}
+                    onValueChange={(value) => handleFilterChange('duration', value)}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-durations">All Durations</SelectItem>
+                      <SelectItem value="short">Short (1-3 days)</SelectItem>
+                      <SelectItem value="medium">Medium (4-7 days)</SelectItem>
+                      <SelectItem value="long">Long (8+ days)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="whitespace-nowrap"
+                >
+                  Clear Filters
+                </Button>
               </div>
-            ))}
+              <div className="w-full sm:w-auto">
+                <Select
+                  value={filters.sortBy}
+                  onValueChange={(value) => handleFilterChange('sortBy', value)}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="distance">Longest Distance</SelectItem>
+                    <SelectItem value="duration">Longest Duration</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {useLocalData && (
+              <div className="bg-yellow-50 border border-yellow-100 rounded-md p-4 mb-6">
+                <p className="text-yellow-800 text-sm">
+                  Using sample trip data. {" "}
+                  {filteredTrips.length === 0 ? "Try clearing your filters to see the sample trips." : ""}
+                </p>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="h-80 rounded-xl bg-gray-200 animate-pulse" />
+                ))}
+              </div>
+            ) : filteredTrips.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredTrips.map((trip) => (
+                  <div key={trip.id} className="cursor-pointer transition-transform hover:scale-[1.02]" onClick={() => handleTripClick(trip)}>
+                    <RoadTripCard trip={trip} />
+                    <TripComments tripId={trip.id} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <h3 className="text-2xl font-semibold mb-4">No trips found</h3>
+                <p className="text-gray-600 mb-6">
+                  No road trips match your current search criteria.
+                  Try changing your filters or search term.
+                </p>
+                <Button onClick={clearFilters}>Clear All Filters</Button>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="text-center py-16">
-            <h3 className="text-2xl font-semibold mb-4">No trips found</h3>
-            <p className="text-gray-600 mb-6">
-              No road trips match your current search criteria.
-              Try changing your filters or search term.
-            </p>
-            <Button onClick={clearFilters}>Clear All Filters</Button>
-          </div>
-        )}
-      </div>
+        </>
+      )}
     </Layout>
   );
 };
