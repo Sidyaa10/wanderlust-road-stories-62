@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Helper function to convert snake_case to camelCase for frontend consumption
@@ -154,5 +153,11 @@ export const api = {
     
     if (error) throw error;
     return formatResponseData(data);
+  },
+  
+  deleteTrip: async (id) => {
+    const { error } = await supabase.from('road_trips').delete().eq('id', id);
+    if (error) throw error;
+    return true;
   }
 };

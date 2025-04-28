@@ -27,7 +27,7 @@ export default function AboutUsPage() {
       <div
         className="relative min-h-[100vh] flex flex-col items-center justify-start py-8 px-2"
         style={{
-          background: `url('/lovable-uploads/4acc9372-658a-41a6-809b-64f6f48c1707.png') center/cover no-repeat`,
+          background: `url('/') center/cover no-repeat`,
         }}
       >
         {/* Overlay */}

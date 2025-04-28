@@ -28,9 +28,9 @@ const fallbackStories = [
     title: "Cruising the French Riviera",
     highlight: "A sun-drenched coast, turquoise waters, and endless charm.",
     images: [
-      "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=600&q=80",
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80",
-      "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=600&q=80",
+      "https://travel.home.sndimg.com/content/dam/images/travel/stock/2016/8/26/0/shutterstock_LiliGraphie-185168879-French-Riviera.jpg.rend.hgtvcom.1280.720.suffix/1491594376304.jpeg",
+      "https://staging.franceadventurer.com/wp-content/uploads/2024/01/plage-des-sablettes-beach-old-town-menton-france-1024x768.jpg",
+      "https://rivierabarcrawltours.com/wp-content/uploads/2020/01/what-is-the-french-riviera-pic1-1080x675-1.jpg",
     ],
     content:
       "Last spring, I started my road trip in Nice and followed the winding coastal roads through Antibes, Cannes, and all the way to St Tropez. Every stop along the Côte d'Azur was bursting with vibrant color, fresh seafood, and golden-hour views over the Mediterranean. The blend of French culture and the sea breeze made this drive absolutely unforgettable!",
@@ -44,9 +44,9 @@ const fallbackStories = [
     title: "Highway to the Clouds: Pacific Coast USA",
     highlight: "Cliffs, surf towns, and the wild ocean drive.",
     images: [
-      "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80",
-      "https://images.unsplash.com/photo-1482881497185-d4a9ddbe4151?w=600&q=80",
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&q=80",
+      "https://www.clickandgo.com/blog/wp-content/uploads/2019/12/west-coast-usa.jpg",
+      "https://www.uscoastlines.com/wp-content/uploads/2020/11/California-Pacific-Coast-1024x576.jpg",
+      "https://www.travelandleisure.com/thmb/flyoiHUr0e_kjpghvM_fRcTNLFQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/TAL-viewpoint-pacific-coast-highway-california-NO1RT0824-0cef3f8952b84f02b586461f5076c7b3.jpg",
     ],
     content:
       "Driving down Highway 1 from San Francisco to Big Sur was a dream come true. The crashing waves and misty mornings set the perfect vibe for winding through redwoods and seaside cliffs. Each overlook along this legendary highway offered a new jaw-dropping perspective—don't miss sunset at Bixby Creek Bridge!",
@@ -60,9 +60,9 @@ const fallbackStories = [
     title: "Bavarian Castles & Alpine Peaks",
     highlight: "From fairy-tale castles to the high Alps.",
     images: [
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80",
-      "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?w=600&q=80",
-      "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=600&q=80",
+      "https://images.seattletimes.com/wp-content/uploads/2019/04/39d285fc-5bd5-11e9-80f3-f2ab2e152199.jpg?d=1560x1040",
+      "https://successtours.s3.amazonaws.com/web/locations/Germany/Bavaria/_2000xAUTO_crop_center-center_90_none/Castle-Hohenschwangau-eternal-forest-with-blue-mountains-and-lakes-of-Bavaria-Germany.jpg",
+      "https://www.traverse-blog.com/wp-content/uploads/2020/03/Swiss-Mountain-Towns-and-Scenery-4.jpg",
     ],
     content:
       "Exploring southern Germany by road took me from Munich to the magical Neuschwanstein Castle and through the Alps to Garmisch. The landscapes were like scenes from a picture book, with crystal lakes, dramatic peaks, and cozy Bavarian villages. Every curve in the road promised a new adventure and postcard-worthy scenery.",

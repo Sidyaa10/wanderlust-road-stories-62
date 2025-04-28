@@ -1,15 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api, User, RoadTrip } from '@/services/api';
 import Layout from '@/components/Layout';
 import RoadTripCard from '@/components/RoadTripCard';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabase';
 import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { LogIn, UserPlus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+const ADMIN_ID = '986da716-10a1-4e37-a718-bc139424d0b6';
+const ADMIN_EMAIL = 'sidkadam10@gmail.com';
+const ADMIN_PROFILE = {
+  id: ADMIN_ID,
+  username: 'sidkadam',
+  name: 'Sid Kadam',
+  avatar: 'https://avatars.githubusercontent.com/u/4149056?v=4',
+  followers: 0,
+  following: 0,
+  createdTrips: 0,
+  bio: 'Web App Developer',
+  created_at: new Date().toISOString(),
+};
 
 const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -19,24 +33,64 @@ const ProfilePage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { id: profileId } = useParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          // Get current user
-          const userData = await api.getCurrentUser();
-          setUser(userData);
-          
+        let userId = profileId;
+        let isAdmin = false;
+        if (!userId) {
+          // Supabase: Get current user
+          const { data: { user } } = await supabase.auth.getUser();
+          userId = user?.id;
+          if (user && user.email === ADMIN_EMAIL) {
+            userId = ADMIN_ID;
+            isAdmin = true;
+          }
+        }
+        if (userId) {
+          // Fetch user profile from Supabase
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+          if (!error && profile) {
+            setUser({
+              name: profile.name || '',
+              username: (userId === ADMIN_ID && (!profile.username || profile.username === ADMIN_ID)) ? 'sidkadam' : (profile.username || ''),
+              avatar: profile.avatar || '',
+              followers: profile.followers || 0,
+              following: profile.following || 0,
+              createdTrips: profile.createdTrips || 0,
+              bio: profile.bio || '',
+              id: userId,
+              created_at: profile.created_at || '',
+            });
+          }
+        }
+        if (userId === ADMIN_ID || isAdmin) {
+          // Get all trips (sample + db)
+          let allTrips = [];
+          try {
+            const dbTrips = await api.getTrips();
+            const { sampleTrips } = await import('./ExplorePage');
+            allTrips = [...sampleTrips, ...dbTrips];
+          } catch {
+            const { sampleTrips } = await import('./ExplorePage');
+            allTrips = sampleTrips;
+          }
+          // Show ALL trips for admin profile except 'Western Ghats, India'
+          const userTrips = allTrips.filter(trip => trip.title !== 'Western Ghats, India').map(trip => ({ ...trip, author: { ...ADMIN_PROFILE } }));
+          setTrips(userTrips);
+        } else {
           // Get all trips
           const allTrips = await api.getTrips();
-          
-          // Filter trips by the current user
-          const userTrips = allTrips.filter(trip => trip.author.id === userData.id);
+          // Filter trips by the profile user
+          const userTrips = userId ? allTrips.filter(trip => trip.author.id === userId) : [];
           setTrips(userTrips);
         }
       } catch (error) {
@@ -45,63 +99,121 @@ const ProfilePage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, []);
+  }, [profileId]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        // Login with Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        
         if (error) throw error;
-        
         toast({
-          title: "Success!",
-          description: "You have been logged in successfully.",
+          title: 'Success!',
+          description: 'You have been logged in successfully.',
         });
-        
-        navigate(0); // Refresh the page to update user state
+        if (email === ADMIN_EMAIL) {
+          setUser(ADMIN_PROFILE);
+          window.location.href = `/profile/${ADMIN_ID}`;
+          return;
+        }
+        // Get user profile
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Always update missing name/username to email
+          await supabase.from('profiles').update({
+            name: user.email,
+            username: user.email
+          }).eq('id', user.id).or('name.is.null,username.is.null');
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          if (!error && profile) {
+            setUser({
+              name: profile.name || user.email,
+              username: profile.username || user.email,
+              avatar: profile.avatar || '',
+              followers: profile.followers || 0,
+              following: profile.following || 0,
+              createdTrips: profile.createdTrips || 0,
+              bio: profile.bio || '',
+              id: user.id,
+              created_at: profile.created_at || '',
+            });
+          }
+        }
+        window.location.reload();
       } else {
-        const { error } = await supabase.auth.signUp({
+        // Register with Supabase
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
-        
         if (error) throw error;
-        
+        // Set name, username, and avatar to email/default in profiles table
+        if (data?.user?.id) {
+          await supabase.from('profiles').update({
+            name: email,
+            username: email,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}`
+          }).eq('id', data.user.id);
+        }
         toast({
-          title: "Success!",
-          description: "Please check your email to verify your account.",
+          title: 'Success!',
+          description: 'Account created. You can now log in.',
         });
+        setIsLogin(true);
       }
     } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Error",
+        variant: 'destructive',
+        title: 'Error',
         description: error.message,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Success!",
-        description: "You have been logged out successfully.",
-      });
-      navigate(0); // Refresh the page to update user state
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+    await supabase.auth.signOut();
+    toast({
+      title: 'Success!',
+      description: 'You have been logged out successfully.',
+    });
+    navigate(0);
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+    const { data, error } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to upload image', variant: 'destructive' });
+      return;
+    }
+    const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
+    const publicUrl = publicUrlData?.publicUrl;
+    if (publicUrl) {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar: publicUrl })
+        .eq('id', user.id);
+      if (updateError) {
+        toast({ title: 'Error', description: 'Failed to update profile', variant: 'destructive' });
+        return;
+      }
+      setUser({ ...user, avatar: publicUrl });
+      toast({ title: 'Success', description: 'Profile picture updated!' });
     }
   };
 
@@ -175,117 +287,98 @@ const ProfilePage: React.FC = () => {
     );
   }
 
+  // Modern profile dashboard for logged-in user
   return (
     <Layout>
-      <div className="bg-forest-700 py-16">
-        <div className="container max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-            <div className="text-center md:text-left">
-              <h1 className="text-3xl font-bold text-white mb-2">{user?.name}</h1>
-              <p className="text-lg text-white/80 mb-4">@{user?.username}</p>
-              <p className="text-white/90 max-w-3xl mb-4">{user?.bio}</p>
-              
-              <div className="flex flex-wrap justify-center md:justify-start gap-6">
+      <div className="bg-gradient-to-tr from-pink-200 via-orange-100 to-white min-h-[300px] pb-12">
+        <div className="container max-w-5xl mx-auto px-4 pt-10">
+          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+            {/* Profile Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-full md:w-1/3 flex flex-col items-center">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-pink-300 mb-4 relative group">
+                <img src={user.avatar || '/default-avatar.png'} alt={user.name} className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  className="absolute bottom-2 right-2 bg-white/80 text-xs px-2 py-1 rounded shadow group-hover:opacity-100 opacity-0 transition"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ fontSize: '0.75rem' }}
+                >
+                  Change
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleAvatarChange}
+                />
+              </div>
+              <h2 className="text-2xl font-bold mb-1 text-gray-900">{user.name}</h2>
+              <p className="text-sm text-gray-500 mb-4">@{user.username}</p>
+              <div className="flex gap-6 mb-4">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-white">{user?.followers}</p>
-                  <p className="text-sm text-white/80">Followers</p>
+                  <div className="text-lg font-bold text-gray-900">{user.createdTrips || 0}</div>
+                  <div className="text-xs text-gray-500">Trips</div>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-white">{user?.following}</p>
-                  <p className="text-sm text-white/80">Following</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-white">{user?.createdTrips}</p>
-                  <p className="text-sm text-white/80">Trips</p>
+                  <div className="text-lg font-bold text-gray-900">{user.followers || 0}</div>
+                  <div className="text-xs text-gray-500">Followers</div>
                 </div>
               </div>
+              <Button className="w-full mb-2">Edit Profile</Button>
+              <Button className="w-full mb-2" onClick={() => navigate('/triplist')}>My Saved Trips</Button>
+              <Button variant="outline" className="w-full" onClick={handleLogout}>Sign Out</Button>
             </div>
-            
-            <div className="flex-grow"></div>
-            
-            <div className="flex flex-col md:flex-row gap-3">
-              <Button className="bg-white text-forest-700 hover:bg-gray-100">
-                Edit Profile
-              </Button>
-              <Button 
-                variant="outline" 
-                className="bg-white text-forest-700 hover:bg-gray-100"
-                onClick={handleLogout}
-              >
-                <LogIn className="mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <Tabs defaultValue="trips" className="mb-12">
-          <TabsList className="mb-8">
-            <TabsTrigger value="trips">My Road Trips</TabsTrigger>
-            <TabsTrigger value="saved">Saved Trips</TabsTrigger>
-            <TabsTrigger value="reviews">My Reviews</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="trips">
-            <div>
+
+            {/* Main Content */}
+            <div className="flex-1 w-full">
+              {/* Recent Trips or Welcome Message */}
               {trips.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {trips.map((trip) => (
-                    <RoadTripCard key={trip.id} trip={trip} />
-                  ))}
-                </div>
+                <>
+                  <h3 className="text-xl font-semibold mb-4 text-gray-900">Recent Road Trips</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {trips.map((trip) => (
+                      <div
+                        key={trip.id}
+                        className="bg-white rounded-xl shadow p-4 flex flex-col cursor-pointer"
+                        onClick={() => navigate(`/explore?selectedTrip=${trip.id}`)}
+                        tabIndex={0}
+                        role="button"
+                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(`/explore?selectedTrip=${trip.id}`); }}
+                        style={{ outline: 'none' }}
+                      >
+                        <div className="h-40 w-full rounded-lg overflow-hidden mb-3">
+                          <img src={trip.image} alt={trip.title} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-lg font-bold text-gray-800 mb-1">{trip.title}</h4>
+                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">{trip.description}</p>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-xs text-gray-500">{trip.location}</span>
+                          <span className="text-xs text-yellow-600 font-semibold flex items-center gap-1"><svg className="h-4 w-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.18c.969 0 1.371 1.24.588 1.81l-3.388 2.46a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.388-2.46a1 1 0 00-1.175 0l-3.388 2.46c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118l-3.388-2.46c-.783-.57-.38-1.81.588-1.81h4.18a1 1 0 00.95-.69l1.286-3.967z" /></svg>{trip.averageRating?.toFixed(1) || '0.0'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-xl">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                  </svg>
-                  <h3 className="text-2xl font-semibold mb-4">No trips yet</h3>
-                  <p className="text-gray-600 mb-6">
-                    You haven't created any road trips yet.
-                    Share your journey with the community.
-                  </p>
-                  <Button asChild>
-                    <a href="/create">Create a Trip</a>
-                  </Button>
+                <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center justify-center min-h-[300px]">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Welcome, {user.name}!</h3>
+                  <p className="text-gray-600 mb-6 text-center max-w-md">You haven't shared any road trips yet. Start your journey by adding your first adventure or browse trips from the community!</p>
+                  <div className="flex gap-4">
+                    <Button asChild>
+                      <a href="/create">Add Your First Trip</a>
+                    </Button>
+                    <Button asChild variant="outline">
+                      <a href="/explore">Browse Trips</a>
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
-          </TabsContent>
-          
-          <TabsContent value="saved">
-            <div className="text-center py-16 bg-gray-50 rounded-xl">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-              <h3 className="text-2xl font-semibold mb-4">No saved trips</h3>
-              <p className="text-gray-600 mb-6">
-                You haven't saved any road trips yet.
-                Explore and save trips for future reference.
-              </p>
-              <Button asChild>
-                <a href="/explore">Explore Trips</a>
-              </Button>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="reviews">
-            <div className="text-center py-16 bg-gray-50 rounded-xl">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-              <h3 className="text-2xl font-semibold mb-4">No reviews yet</h3>
-              <p className="text-gray-600 mb-6">
-                You haven't reviewed any road trips yet.
-                Share your experiences with the community.
-              </p>
-              <Button asChild>
-                <a href="/explore">Write a Review</a>
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </Layout>
   );

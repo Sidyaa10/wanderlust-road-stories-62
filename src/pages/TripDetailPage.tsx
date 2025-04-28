@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Star, Clock, Calendar, User, MessageSquare, ArrowLeft, Map } from 'lucide-react';
@@ -13,13 +12,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import MapView from '@/components/MapView';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TripDetailPageProps {
   tripData?: RoadTrip;
   onClose?: () => void;
+  disableLayout?: boolean;
 }
 
-const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) => {
+const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose, disableLayout }) => {
   const { id } = useParams<{ id: string }>();
   const [trip, setTrip] = useState<RoadTrip | null>(null);
   const [loading, setLoading] = useState<boolean>(tripData ? false : true);
@@ -29,6 +30,9 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
   const [submittingReview, setSubmittingReview] = useState<boolean>(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [saved, setSaved] = useState(false);
+  const ADMIN_ID = 'sidkadam';
 
   useEffect(() => {
     if (tripData) {
@@ -55,6 +59,20 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
 
     fetchTrip();
   }, [id, tripData]);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    };
+    fetchCurrentUser();
+  }, []);
+
+  useEffect(() => {
+    // Check if this trip is saved for the current user
+    const savedTrips = JSON.parse(localStorage.getItem('savedTrips') || '[]');
+    setSaved(savedTrips.includes(trip?.id));
+  }, [trip?.id]);
 
   const handleSubmitReview = async () => {
     if (!trip || !reviewComment.trim()) return;
@@ -97,37 +115,83 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
     }
   };
 
+  const handleDeleteTrip = async () => {
+    if (!window.confirm('Are you sure you want to delete this trip?')) return;
+    try {
+      await api.deleteTrip(trip.id);
+      toast({ title: 'Trip deleted', description: 'Your trip has been deleted.' });
+      navigate('/profile');
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to delete trip.', variant: 'destructive' });
+    }
+  };
+
+  const handleEditTrip = () => {
+    navigate(`/create?editTrip=${trip.id}`);
+  };
+
+  const handleSaveTrip = () => {
+    let savedTrips = JSON.parse(localStorage.getItem('savedTrips') || '[]');
+    if (saved) {
+      savedTrips = savedTrips.filter((tid: string) => tid !== trip.id);
+    } else {
+      savedTrips.push(trip.id);
+    }
+    localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
+    setSaved(!saved);
+  };
+
+  const handleDeleteReview = async (ratingId: string) => {
+    try {
+      await api.deleteRating(ratingId);
+      if (trip?.id) {
+        const updatedTrip = await api.getTripById(trip.id);
+        if (updatedTrip) {
+          setTrip(updatedTrip);
+        }
+      }
+      toast({ title: 'Review deleted', description: 'Your review has been deleted.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to delete review.', variant: 'destructive' });
+    }
+  };
+
+  const canEditOrDelete = (
+    currentUser && trip && (
+      (trip.author.id === currentUser.id) ||
+      (trip.author.id === ADMIN_ID && currentUser.id === ADMIN_ID)
+    ) && !/^eu|ap|am/.test(trip.id)
+  );
+
   if (loading) {
-    return (
-      <Layout>
-        <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="h-80 w-full rounded-xl bg-gray-200 animate-pulse mb-8" />
-          <div className="h-10 w-1/3 bg-gray-200 animate-pulse mb-4" />
-          <div className="h-20 w-full bg-gray-200 animate-pulse mb-8" />
-          {/* More skeleton loading states */}
-        </div>
-      </Layout>
+    const content = (
+      <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="h-80 w-full rounded-xl bg-gray-200 animate-pulse mb-8" />
+        <div className="h-10 w-1/3 bg-gray-200 animate-pulse mb-4" />
+        <div className="h-20 w-full bg-gray-200 animate-pulse mb-8" />
+        {/* More skeleton loading states */}
+      </div>
     );
+    return disableLayout ? content : <Layout>{content}</Layout>;
   }
 
   if (!trip) {
-    return (
-      <Layout>
-        <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <h1 className="text-3xl font-bold mb-4">Trip Not Found</h1>
-          <p className="text-gray-600 mb-6">
-            The road trip you're looking for doesn't exist or has been removed.
-          </p>
-          <Button asChild>
-            <a href="/explore">Explore Other Trips</a>
-          </Button>
-        </div>
-      </Layout>
+    const content = (
+      <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
+        <h1 className="text-3xl font-bold mb-4">Trip Not Found</h1>
+        <p className="text-gray-600 mb-6">
+          The road trip you're looking for doesn't exist or has been removed.
+        </p>
+        <Button asChild>
+          <a href="/explore">Explore Other Trips</a>
+        </Button>
+      </div>
     );
+    return disableLayout ? content : <Layout>{content}</Layout>;
   }
 
-  return (
-    <Layout>
+  const mainContent = (
+    <>
       {(onClose || id) && (
         <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
           <Button 
@@ -170,7 +234,7 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
               <div className="flex items-center text-white/90">
                 <Star className="h-4 w-4 mr-1 text-yellow-400" />
                 <span>
-                  {trip.averageRating.toFixed(1)} ({trip.ratings.length} reviews)
+                  {typeof trip.averageRating === 'number' ? trip.averageRating.toFixed(1) : '0.0'} ({trip.ratings.length} reviews)
                 </span>
               </div>
               <div className="flex items-center text-white/90">
@@ -267,7 +331,7 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
                             {index + 1}
                           </div>
                           <div className="flex-grow">
-                            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 w-full max-w-md">
                               <img 
                                 src={stop.image} 
                                 alt={stop.name}
@@ -349,30 +413,49 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
                     
                     {trip.ratings.length > 0 ? (
                       <div className="space-y-6">
-                        {trip.ratings.map((rating) => (
+                        {(() => {
+                          const seen = new Set<string>();
+                          return trip.ratings.filter(rating => {
+                            const key = (rating.user?.id || 'anon') + '|' + rating.comment;
+                            if (seen.has(key)) return false;
+                            seen.add(key);
+                            return true;
+                          }).map((rating) => (
                           <div key={rating.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center">
                                 <img 
-                                  src={rating.user.avatar} 
-                                  alt={rating.user.name} 
+                                    src={rating.user?.avatar || '/default-avatar.png'} 
+                                    alt={rating.user?.username || rating.user?.name || rating.user?.email || (rating.user?.id === currentUser?.id ? currentUser?.email : undefined) || 'Anonymous'} 
                                   className="h-10 w-10 rounded-full mr-3"
                                 />
                                 <div>
-                                  <p className="font-medium">{rating.user.name}</p>
+                                    <p className="font-medium">{
+                                      rating.user?.username ||
+                                      rating.user?.name ||
+                                      rating.user?.email ||
+                                      (rating.user?.id === currentUser?.id ? currentUser?.email : undefined) ||
+                                      'No Name'
+                                    }</p>
                                   <p className="text-sm text-gray-500">
                                     {format(new Date(rating.createdAt), 'MMM d, yyyy')}
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center">
+                              <div className="flex items-center gap-2">
                                 <StarRating rating={rating.rating} size="sm" />
                                 <span className="ml-2 font-medium">{rating.rating.toFixed(1)}</span>
+                                {canEditOrDelete && (
+                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteReview(rating.id)} title="Delete review">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                  </Button>
+                                )}
                               </div>
                             </div>
                             <p className="text-gray-700">{rating.comment}</p>
                           </div>
-                        ))}
+                          ));
+                        })()}
                       </div>
                     ) : (
                       <div className="text-center py-8 text-gray-500">
@@ -408,21 +491,37 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose }) =>
                 </div>
                 
                 <div className="flex flex-col space-y-3">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full" onClick={() => {
+                    if (currentUser && trip.author.id === currentUser.id) {
+                      navigate('/profile');
+                    } else if (trip.author.id === 'sidkadam' || trip.author.id === '986da716-10a1-4e37-a718-bc139424d0b6') {
+                      navigate('/profile/986da716-10a1-4e37-a718-bc139424d0b6');
+                    } else {
+                      navigate(`/profile/${trip.author.id}`);
+                    }
+                  }}>
                     <User className="h-4 w-4 mr-2" />
                     View Profile
                   </Button>
-                  <Button className="w-full bg-forest-700 hover:bg-forest-800 text-white">
-                    Save Trip
+                  <Button className="w-full bg-forest-700 hover:bg-forest-800 text-white" onClick={handleSaveTrip}>
+                    {saved ? 'Saved' : 'Save Trip'}
                   </Button>
+                  {canEditOrDelete && (
+                    <div className="flex gap-2 mt-4">
+                      <Button variant="destructive" className="w-full" onClick={handleDeleteTrip}>Delete</Button>
+                      <Button variant="outline" className="w-full" onClick={handleEditTrip}>Edit</Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
+
+  return disableLayout ? mainContent : <Layout>{mainContent}</Layout>;
 };
 
 export default TripDetailPage;

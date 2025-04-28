@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { User, Search, Compass, Plus, MapPin } from 'lucide-react';
@@ -57,6 +56,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 className={cn("nav-link", isActive("/about") && "active")}
               >
                 About Us
+              </Link>
+              <Link 
+                to="/triplist" 
+                className={cn("nav-link", isActive("/triplist") && "active")}
+              >
+                Saved Trips
               </Link>
             </div>
             <div className="flex items-center space-x-4">

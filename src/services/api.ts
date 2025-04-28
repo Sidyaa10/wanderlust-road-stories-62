@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, RoadTrip, RoadStop, Rating } from './types';
 
@@ -71,12 +70,13 @@ export const api = {
     if (!user) throw new Error('Must be logged in to create a trip');
 
     // Extract only the fields that the road_trips table accepts
-    const { title, description, image, distance, duration, location, difficulty } = tripData;
+    const { title, description, image, distance, duration, location, difficulty, stops } = tripData;
     
     // Ensure title is provided as it's required by the database
     if (!title) throw new Error('Trip title is required');
 
-    const { data, error } = await supabase
+    // 1. Insert the trip
+    const { data: trip, error } = await supabase
       .from('road_trips')
       .insert({
         title,
@@ -90,9 +90,56 @@ export const api = {
       })
       .select()
       .single();
-    
     if (error) throw error;
-    return formatResponseData(data) as RoadTrip;
+
+    // 2. Insert stops if provided
+    if (stops && Array.isArray(stops) && stops.length > 0) {
+      // Geocode each stop's location using OpenStreetMap Nominatim API, fallback to trip location if fails
+      const fallbackCoords = [77.5946, 12.9716]; // Default: Bangalore, India (lng, lat)
+      const geocodeStop = async (stop) => {
+        try {
+          // Try to geocode the stop's location
+          const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(stop.location)}`);
+          const data = await resp.json();
+          if (data && data.length > 0) {
+            const latitude = parseFloat(data[0].lat);
+            const longitude = parseFloat(data[0].lon);
+            return { ...stop, latitude, longitude };
+          }
+        } catch {}
+        // Fallback: try to geocode the trip's location
+        try {
+          const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`);
+          const data = await resp.json();
+          if (data && data.length > 0) {
+            const latitude = parseFloat(data[0].lat);
+            const longitude = parseFloat(data[0].lon);
+            return { ...stop, latitude, longitude };
+          }
+        } catch {}
+        // Fallback: use default coordinates
+        return {
+          ...stop,
+          longitude: fallbackCoords[0],
+          latitude: fallbackCoords[1]
+        };
+      };
+      const stopsWithCoords = await Promise.all(stops.map(geocodeStop));
+      await supabase.from('road_stops').insert(
+        stopsWithCoords.map((stop, idx) => ({
+          trip_id: trip.id,
+          name: stop.name,
+          description: stop.description,
+          image: stop.image,
+          location: stop.location,
+          position: stop.position || idx + 1,
+          latitude: stop.latitude,
+          longitude: stop.longitude
+        }))
+      );
+    }
+    // 3. Return the trip with stops
+    return await api.getTripById(trip.id);
   },
   
   // Users
@@ -138,7 +185,6 @@ export const api = {
   addRating: async (tripId: string, rating: number, comment: string): Promise<Rating> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Must be logged in to rate');
-    
     const { data, error } = await supabase
       .from('ratings')
       .insert({
@@ -147,14 +193,22 @@ export const api = {
         rating,
         comment
       })
-      .select(`
-        *,
-        user:profiles(*)
-      `)
+      .select(`*, user:profiles(*)`)
       .single();
-    
     if (error) throw error;
-    return formatResponseData(data) as Rating;
+    return formatResponseData(data);
+  },
+  
+  deleteTrip: async (id: string): Promise<boolean> => {
+    const { error } = await supabase.from('road_trips').delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  },
+
+  deleteRating: async (ratingId: string): Promise<boolean> => {
+    const { error } = await supabase.from('ratings').delete().eq('id', ratingId);
+    if (error) throw error;
+    return true;
   }
 };
 

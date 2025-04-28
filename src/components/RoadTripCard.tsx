@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Star, Calendar, Clock } from 'lucide-react';
@@ -46,7 +45,7 @@ const RoadTripCard: React.FC<RoadTripCardProps> = ({ trip }) => {
                 <span className="text-sm text-gray-600">{trip.author.name}</span>
                 <div className="flex items-center">
                   <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                  <span className="text-sm font-medium">{trip.averageRating.toFixed(1)}</span>
+                  <span className="text-sm font-medium">{typeof trip.averageRating === 'number' ? trip.averageRating.toFixed(1) : '0.0'}</span>
                 </div>
               </div>
               
@@ -90,7 +89,7 @@ const RoadTripCard: React.FC<RoadTripCardProps> = ({ trip }) => {
               </div>
               <div className="flex items-center gap-1 text-yellow-500">
                 <Star className="h-4 w-4" />
-                <span className="text-sm font-medium">{trip.averageRating.toFixed(1)}</span>
+                <span className="text-sm font-medium">{typeof trip.averageRating === 'number' ? trip.averageRating.toFixed(1) : '0.0'}</span>
               </div>
             </div>
             

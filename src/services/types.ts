@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   username: string;
@@ -9,6 +8,7 @@ export interface User {
   following: number;
   created_at: string;
   createdTrips?: number;
+  email?: string;
 }
 
 export interface RoadTrip {
@@ -40,6 +40,8 @@ export interface RoadStop {
   location: string;
   position: number;
   created_at: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Rating {

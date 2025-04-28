@@ -75,7 +75,7 @@ const HomePage: React.FC = () => {
             
             <div className="flex flex-col items-center text-center">
               <div className="bg-sky-100 rounded-full p-5 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="https://media.istockphoto.com/id/1140461954/photo/motorcycle-driving-on-the-asphalt-road-in-rural-landscape-at-sunset-with-dramatic-clouds.jpg?s=612x612&w=0&k=20&c=4ftammuQg8B6cyfzVPeUA0U7QVXYhKizsawcPo6Hq6I=" className="h-10 w-10 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               </div>
