@@ -320,30 +320,30 @@ const TripDetailPage: React.FC<TripDetailPageProps> = ({ tripData, onClose, disa
                 <div>
                   <h2 className="text-2xl font-bold mb-6">Journey Highlights</h2>
                   
-                  <div className="space-y-8">
+                  <div className="space-y-8 z-0 relative">
                     {trip.stops.map((stop, index) => (
                       <div key={stop.id} className="relative">
                         {index < trip.stops.length - 1 && (
                           <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-gray-200 z-0" />
                         )}
-                        <div className="relative z-10 flex gap-4">
+                        <div className="relative z-10 flex gap-4 flex-col sm:flex-row items-start sm:items-center">
                           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-forest-100 text-forest-700 flex items-center justify-center font-bold text-lg">
                             {index + 1}
                           </div>
-                          <div className="flex-grow">
-                            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 w-full max-w-md">
+                          <div className="flex-grow w-full">
+                            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 w-full max-w-md sm:max-w-md mx-auto">
                               <img 
                                 src={stop.image} 
                                 alt={stop.name}
-                                className="w-full h-48 object-cover"
+                                className="w-full h-40 sm:h-48 object-cover"
                               />
                               <div className="p-4">
-                                <h3 className="text-xl font-semibold mb-1">{stop.name}</h3>
+                                <h3 className="text-xl font-semibold mb-1 break-words">{stop.name}</h3>
                                 <div className="flex items-center text-gray-500 text-sm mb-3">
                                   <MapPin className="h-3 w-3 mr-1" />
-                                  <span>{stop.location}</span>
+                                  <span className="break-words">{stop.location}</span>
                                 </div>
-                                <p className="text-gray-700">
+                                <p className="text-gray-700 break-words">
                                   {stop.description}
                                 </p>
                               </div>

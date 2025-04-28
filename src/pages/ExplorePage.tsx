@@ -517,32 +517,34 @@ const ExplorePage: React.FC = () => {
           <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-8 mt-16">
             <div className="flex items-center gap-5 mb-8">
               <span className="text-sm sm:text-base font-medium min-w-[68px]">Region:</span>
-              <ToggleGroup
-                type="single"
-                value={filters.region}
-                onValueChange={val => {
-                  if (val) setFilters(prev => ({ ...prev, region: val }));
-                }}
-                className="rounded-lg border bg-muted shadow-sm gap-0"
-              >
-                {REGION_BUTTONS.map((btn) => (
-                  <ToggleGroupItem
-                    key={btn.value}
-                    value={btn.value}
-                    className={`px-5 py-2 data-[state=on]:bg-gray-100 data-[state=on]:text-black
-                   text-gray-700 font-semibold rounded-none border-r last:border-r-0 
-                   border-gray-200 text-base hover:bg-gray-50 transition-all`}
-                    style={{
-                      borderTopLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
-                      borderBottomLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
-                      borderTopRightRadius: btn.value === "rest" ? "0.5rem" : undefined,
-                      borderBottomRightRadius: btn.value === "rest" ? "0.5rem" : undefined
-                    }}
-                  >
-                    {btn.label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+              <div className="overflow-x-auto max-w-full sm:overflow-visible">
+                <ToggleGroup
+                  type="single"
+                  value={filters.region}
+                  onValueChange={val => {
+                    if (val) setFilters(prev => ({ ...prev, region: val }));
+                  }}
+                  className="rounded-lg border bg-muted shadow-sm gap-0 min-w-max"
+                >
+                  {REGION_BUTTONS.map((btn) => (
+                    <ToggleGroupItem
+                      key={btn.value}
+                      value={btn.value}
+                      className={`px-5 py-2 data-[state=on]:bg-gray-100 data-[state=on]:text-black
+                     text-gray-700 font-semibold rounded-none border-r last:border-r-0 
+                     border-gray-200 text-base hover:bg-gray-50 transition-all`}
+                      style={{
+                        borderTopLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
+                        borderBottomLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
+                        borderTopRightRadius: btn.value === "rest" ? "0.5rem" : undefined,
+                        borderBottomRightRadius: btn.value === "rest" ? "0.5rem" : undefined
+                      }}
+                    >
+                      {btn.label}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
