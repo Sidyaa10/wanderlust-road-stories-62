@@ -25,14 +25,33 @@ interface MapViewProps {
 
 // Helper to extract coordinates from a stop
 const getCoordinatesFromStop = (stop: RoadStop): [number, number] => {
+  // Hardcoded coordinates for specific stops
+  const stopCoordinates: { [key: string]: [number, number] } = {
+    'Lonavala': [18.7547, 73.4067],
+    'Mahabaleshwar': [17.9307, 73.6417],
+    'Ganpatipule': [17.1447, 73.2695],
+    'Ratnagiri': [16.9902, 73.3120],
+    'Panjim': [15.4989, 73.8278],
+    'Vasco Da Gama': [15.3961, 73.8120],
+    'Gokarna': [14.5439, 74.3184],
+    'Murudeshwar': [14.0994, 74.4887]
+  };
+
+  // If the stop has explicit coordinates, use them
   if (typeof stop.longitude === 'number' && typeof stop.latitude === 'number') {
     return [stop.latitude, stop.longitude]; // Leaflet uses [lat, lng]
   }
-  // Fallback: use fake coordinates based on stop name
+
+  // If it's one of our predefined stops, use the hardcoded coordinates
+  if (stopCoordinates[stop.name]) {
+    return stopCoordinates[stop.name];
+  }
+
+  // Fallback: use fake coordinates based on stop name in Western Ghats region
   const hash = stop.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return [
-    37.7749 + (hash % 10) / 100,   // Fake latitude near San Francisco
-    -122.4194 + (hash % 10) / 100, // Fake longitude near San Francisco
+    13.0827 + (hash % 10) / 100,   // Fake latitude in Western Ghats
+    75.6127 + (hash % 10) / 100,   // Fake longitude in Western Ghats
   ];
 };
 
