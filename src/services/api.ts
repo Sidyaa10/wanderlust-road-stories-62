@@ -185,6 +185,15 @@ export const api = {
   addRating: async (tripId: string, rating: number, comment: string): Promise<Rating> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Must be logged in to rate');
+
+    // First get the user's profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    // Then create the rating with the profile data
     const { data, error } = await supabase
       .from('ratings')
       .insert({
@@ -193,10 +202,16 @@ export const api = {
         rating,
         comment
       })
-      .select(`*, user:profiles(*)`)
+      .select()
       .single();
+
     if (error) throw error;
-    return formatResponseData(data);
+
+    // Combine the rating data with the user profile
+    return formatResponseData({
+      ...data,
+      user: profile
+    });
   },
   
   deleteTrip: async (id: string): Promise<boolean> => {
