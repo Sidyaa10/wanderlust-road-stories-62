@@ -23,8 +23,13 @@ export interface RoadTrip {
   difficulty: 'Easy' | 'Moderate' | 'Hard';
   stops: RoadStop[];
   ratings: Rating[];
+  comments?: TripComment[];
   average_rating: number;
   created_at: string;
+  likesCount?: number;
+  likedByMe?: boolean;
+  savedByMe?: boolean;
+  shareCount?: number;
   
   // Add these for compatibility with existing code
   averageRating?: number;
@@ -48,8 +53,18 @@ export interface Rating {
   id: string;
   trip_id: string;
   user_id: string;
-  user: User;
+  user: User | null;
   rating: number;
+  comment: string;
+  created_at: string;
+  createdAt?: string;
+}
+
+export interface TripComment {
+  id: string;
+  trip_id: string;
+  user_id: string;
+  user: User | null;
   comment: string;
   created_at: string;
   createdAt?: string;

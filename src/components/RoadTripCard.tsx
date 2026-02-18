@@ -21,7 +21,7 @@ const RoadTripCard: React.FC<RoadTripCardProps> = ({ trip }) => {
   };
 
   return (
-    <div className="road-card bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all">
+    <div className="road-card bg-[#f2e6d2] rounded-xl overflow-hidden shadow-md hover:shadow-xl border border-[#d8c7b2] transition-all">
       <HoverCard>
         <HoverCardTrigger asChild>
           <Link to={`/explore?selectedTrip=${trip.id}`} className="block">

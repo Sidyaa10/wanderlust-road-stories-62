@@ -5,33 +5,33 @@
 
 @layer base {
   :root {
-    --background: 110 45% 98%;
-    --foreground: 110 10% 15%;
+    --background: 34 43% 82%;
+    --foreground: 251 11% 42%;
 
     --card: 0 0% 100%;
-    --card-foreground: 110 10% 15%;
+    --card-foreground: 251 11% 42%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 110 10% 15%;
+    --popover-foreground: 251 11% 42%;
 
-    --primary: 142 75% 32%;
+    --primary: 183 21% 51%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 24 80% 46%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 337 62% 70%;
+    --secondary-foreground: 251 11% 42%;
 
-    --muted: 110 20% 96%;
-    --muted-foreground: 110 5% 45%;
+    --muted: 34 43% 82%;
+    --muted-foreground: 251 11% 48%;
 
-    --accent: 210 60% 45%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 13% 57%;
+    --accent-foreground: 20 33% 90%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 110 15% 90%;
-    --input: 110 15% 90%;
-    --ring: 142 75% 32%;
+    --border: 34 29% 74%;
+    --input: 34 29% 74%;
+    --ring: 183 21% 51%;
 
     --radius: 0.75rem;
   }
@@ -42,6 +42,9 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    background-image: radial-gradient(circle at 0% 0%, rgba(225, 130, 153, 0.24), transparent 30%),
+      radial-gradient(circle at 100% 100%, rgba(103, 159, 159, 0.2), transparent 35%);
+    min-height: 100vh;
   }
   
   .road-card {
@@ -49,8 +52,19 @@
   }
   
   .hero-pattern {
-    background-color: #f8fafb;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c7dfc9' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-color: #e6d4bf;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23877499' fill-opacity='0.22'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .hero-cinematic {
+    background-image: url("/Hero.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .hero-title-shadow {
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
   }
 }
 

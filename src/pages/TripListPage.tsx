@@ -14,32 +14,39 @@ const TripListPage: React.FC = () => {
   useEffect(() => {
     const fetchTrips = async () => {
       setLoading(true);
-      const savedTrips = JSON.parse(localStorage.getItem('savedTrips') || '[]');
-      if (savedTrips.length === 0) {
+      if (!api.isAuthenticated()) {
         setTrips([]);
         setLoading(false);
         return;
       }
       try {
-        const dbTrips = await api.getTrips();
-        const allTrips = [...sampleTrips, ...dbTrips];
-        setTrips(allTrips.filter(trip => savedTrips.includes(trip.id)));
+        const saved = await api.getSavedTrips();
+        const localSavedIds = api.getBuiltinSavedTripIds();
+        const localSaved = sampleTrips.filter((trip) => localSavedIds.includes(trip.id)).map((trip) => {
+          const meta = api.getBuiltinTripState(trip.id);
+          return {
+            ...trip,
+            likesCount: meta.likesCount,
+            shareCount: meta.shareCount,
+            likedByMe: meta.likedByMe,
+            savedByMe: meta.savedByMe,
+            comments: meta.comments,
+            ratings: meta.ratings,
+            averageRating: meta.averageRating || trip.averageRating,
+          };
+        });
+        setTrips([...localSaved, ...saved]);
       } catch {
-        setTrips(sampleTrips.filter(trip => savedTrips.includes(trip.id)));
+        const localSavedIds = api.getBuiltinSavedTripIds();
+        const localSaved = sampleTrips.filter((trip) => localSavedIds.includes(trip.id));
+        setTrips(localSaved);
       }
       setLoading(false);
     };
     fetchTrips();
-    // Listen for storage changes (other tabs/windows)
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'savedTrips') fetchTrips();
-    };
-    window.addEventListener('storage', onStorage);
-    // Reload on focus (same tab)
     const onFocus = () => fetchTrips();
     window.addEventListener('focus', onFocus);
     return () => {
-      window.removeEventListener('storage', onStorage);
       window.removeEventListener('focus', onFocus);
     };
   }, []);
@@ -65,7 +72,11 @@ const TripListPage: React.FC = () => {
         ) : (
           <div className="text-center py-16">
             <h3 className="text-2xl font-semibold mb-4">No saved trips</h3>
-            <p className="text-gray-600 mb-6">You haven't saved any trips yet. Go explore and save your favorites!</p>
+            <p className="text-gray-600 mb-6">
+              {api.isAuthenticated()
+                ? "You have not saved any trips yet. Go explore and save your favorites."
+                : "Please log in to view your saved trips."}
+            </p>
             <Button onClick={() => navigate('/explore')}>Explore Trips</Button>
           </div>
         )}

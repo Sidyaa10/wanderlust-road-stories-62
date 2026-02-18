@@ -2,11 +2,11 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import StoryModal from "./StoryModal";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Heart, Share2, MapPin, Star, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { api } from "@/services/api";
 
 // Interface for our road trip stories
 interface Story {
@@ -19,6 +19,7 @@ interface Story {
   name: string;
   likes?: number;
   isLiked?: boolean;
+  shareCount?: number;
 }
 
 // Fallback stories in case database fetch fails
@@ -86,27 +87,10 @@ const TopRoadStories: React.FC<TopRoadStoriesProps> = ({ featured = false }) => 
   useEffect(() => {
     async function fetchRoadTrips() {
       try {
-        const { data, error } = await supabase
-          .from('road_trips')
-          .select(`
-            id,
-            title,
-            description,
-            location,
-            image,
-            author:profiles(name)
-          `)
-          .limit(featured ? 6 : 3)
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error("Error fetching road trips:", error);
-          throw error;
-        }
-
-        if (data && data.length > 0) {
-          // Transform the data to match our Story interface
-          const transformedData: Story[] = data.map(trip => ({
+        const trips = await api.getTrips();
+        const limited = trips.slice(0, featured ? 6 : 3);
+        if (limited.length > 0) {
+          const transformedData: Story[] = limited.map((trip) => ({
             id: trip.id,
             title: trip.title,
             highlight: trip.description || "Explore this amazing road trip adventure.",
@@ -114,10 +98,10 @@ const TopRoadStories: React.FC<TopRoadStoriesProps> = ({ featured = false }) => 
             content: trip.description || "No details available for this trip yet.",
             location: trip.location || "Unknown location",
             name: trip.author?.name || "Road Trip Explorer",
-            likes: Math.floor(Math.random() * 50) + 5, // Random likes for demo
-            isLiked: false,
+            likes: trip.likesCount || 0,
+            isLiked: Boolean(trip.likedByMe),
+            shareCount: trip.shareCount || 0,
           }));
-          
           setStories(transformedData);
         }
       } catch (error) {
@@ -137,41 +121,30 @@ const TopRoadStories: React.FC<TopRoadStoriesProps> = ({ featured = false }) => 
 
   const handleLike = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    // Update story like state
-    setStories(prevStories => 
-      prevStories.map((story, i) => 
-        i === idx 
-          ? { 
-              ...story, 
-              isLiked: !story.isLiked,
-              likes: story.isLiked ? (story.likes || 0) - 1 : (story.likes || 0) + 1 
-            } 
-          : story
-      )
-    );
-
-    // Show toast notification
-    toast({
-      title: stories[idx].isLiked ? "Removed from favorites" : "Added to favorites",
-      description: stories[idx].isLiked 
-        ? `${stories[idx].title} removed from your favorites` 
-        : `${stories[idx].title} added to your favorites`,
-    });
+    api
+      .toggleLikeTrip(stories[idx].id)
+      .then((result) => {
+        setStories((prev) =>
+          prev.map((story, i) =>
+            i === idx ? { ...story, isLiked: result.liked, likes: result.likesCount } : story
+          )
+        );
+      })
+      .catch((err) => {
+        toast({
+          title: "Like failed",
+          description: err.message || "Please login first",
+          variant: "destructive",
+        });
+      });
   };
 
   const handleShare = (idx: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    // Copy link to clipboard
     const shareUrl = `${window.location.origin}/explore?selectedTrip=${stories[idx].id}`;
     navigator.clipboard.writeText(shareUrl);
-    
-    // Show toast notification
-    toast({
-      title: "Link copied!",
-      description: "Share link copied to clipboard",
-    });
+    api.shareTrip(stories[idx].id).catch(() => undefined);
+    toast({ title: "Link copied!", description: "Share link copied to clipboard" });
   };
 
   const handleViewAllStories = () => {
@@ -227,7 +200,7 @@ const TopRoadStories: React.FC<TopRoadStoriesProps> = ({ featured = false }) => 
                 className="road-card relative focus:outline-none focus:ring-2 focus:ring-sky-500 group"
                 aria-label={`Read story: ${story.title}`}
               >
-                <Card className="h-full flex flex-col transition-shadow hover:shadow-lg overflow-hidden">
+                <Card className="h-full flex flex-col transition-shadow hover:shadow-lg overflow-hidden bg-[#f2e6d2] border-[#d8c7b2]">
                   <div 
                     className="relative h-48 cursor-pointer"
                     onClick={() => handleStoryClick(idx)}

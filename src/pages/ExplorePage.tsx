@@ -82,7 +82,7 @@ export const sampleTrips: RoadTrip[] = [
     id: 'eu3',
     title: "Tuscan Sun Drive",
     description: "Sunset drives through rolling vineyards and cypress-lined roads in Tuscany, Italy.",
-    image: "https://aarp-content.brightspotcdn.com/dims4/default/3a5dc5e/2147483647/strip/true/crop/1280x672+0+16/resize/1200x630!/quality/90/?url=http%3A%2F%2Faarp-brightspot.s3.amazonaws.com%2Fcontent%2Fe6%2Fb7%2F5f4a6d2946bf87feef0e28912772%2F1280-tuscan-sun-landscape-view.jpg",
+    image: "https://i.pinimg.com/1200x/7e/bb/e8/7ebbe8c3c27faf246273588e8e7447fa.jpg",
     distance: 190,
     duration: 3,
     location: "Europe - Italy",
@@ -364,15 +364,41 @@ const ExplorePage: React.FC = () => {
       try {
         setLoading(true);
         const trips = await api.getTrips();
+        const enrichedSampleTrips = sampleTrips.map((trip) => {
+          const state = api.getBuiltinTripState(trip.id);
+          return {
+            ...trip,
+            likesCount: state.likesCount,
+            shareCount: state.shareCount,
+            likedByMe: state.likedByMe,
+            savedByMe: state.savedByMe,
+            comments: state.comments,
+            ratings: state.ratings,
+            averageRating: state.averageRating || trip.averageRating,
+          };
+        });
         // Always show both demo trips and database trips
-        const combinedTrips = [...sampleTrips, ...trips];
+        const combinedTrips = [...enrichedSampleTrips, ...trips];
         setAllTrips(combinedTrips);
         setFilteredTrips(combinedTrips);
       } catch (error) {
         console.error('Error fetching trips:', error);
         setUseLocalData(true);
-        setAllTrips(sampleTrips);
-        setFilteredTrips(sampleTrips);
+        const enrichedSampleTrips = sampleTrips.map((trip) => {
+          const state = api.getBuiltinTripState(trip.id);
+          return {
+            ...trip,
+            likesCount: state.likesCount,
+            shareCount: state.shareCount,
+            likedByMe: state.likedByMe,
+            savedByMe: state.savedByMe,
+            comments: state.comments,
+            ratings: state.ratings,
+            averageRating: state.averageRating || trip.averageRating,
+          };
+        });
+        setAllTrips(enrichedSampleTrips);
+        setFilteredTrips(enrichedSampleTrips);
         toast({
           title: "Connection error",
           description: "Could not connect to the database. Using sample trips instead.",
@@ -494,10 +520,10 @@ const ExplorePage: React.FC = () => {
         <TripDetailPage tripData={selectedTrip} onClose={handleCloseTripDetail} disableLayout />
       ) : (
         <>
-          <div className="bg-forest-700 py-16">
+          <div className="bg-white py-16">
             <div className="container max-w-7xl px-4 sm:px-6 lg:px-8">
-              <h1 className="text-4xl font-bold text-white mb-6">Explore Road Trips</h1>
-              <p className="text-lg text-white/90 mb-8 max-w-3xl">
+              <h1 className="text-4xl font-bold text-gray-900 mb-6">Explore Road Trips</h1>
+              <p className="text-lg text-gray-700 mb-8 max-w-3xl">
                 Discover amazing road trip adventures shared by our community.
                 Find your next journey based on location, difficulty, or duration.
               </p>
@@ -514,36 +540,36 @@ const ExplorePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-8 mt-16">
+          <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 py-8 mt-16 bg-white">
             <div className="flex items-center gap-5 mb-8">
               <span className="text-sm sm:text-base font-medium min-w-[68px]">Region:</span>
               <div className="overflow-x-auto max-w-full sm:overflow-visible">
-                <ToggleGroup
-                  type="single"
-                  value={filters.region}
-                  onValueChange={val => {
-                    if (val) setFilters(prev => ({ ...prev, region: val }));
-                  }}
+              <ToggleGroup
+                type="single"
+                value={filters.region}
+                onValueChange={val => {
+                  if (val) setFilters(prev => ({ ...prev, region: val }));
+                }}
                   className="rounded-lg border bg-muted shadow-sm gap-0 min-w-max"
-                >
-                  {REGION_BUTTONS.map((btn) => (
-                    <ToggleGroupItem
-                      key={btn.value}
-                      value={btn.value}
-                      className={`px-5 py-2 data-[state=on]:bg-gray-100 data-[state=on]:text-black
-                     text-gray-700 font-semibold rounded-none border-r last:border-r-0 
-                     border-gray-200 text-base hover:bg-gray-50 transition-all`}
-                      style={{
-                        borderTopLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
-                        borderBottomLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
-                        borderTopRightRadius: btn.value === "rest" ? "0.5rem" : undefined,
-                        borderBottomRightRadius: btn.value === "rest" ? "0.5rem" : undefined
-                      }}
-                    >
-                      {btn.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
+              >
+                {REGION_BUTTONS.map((btn) => (
+                  <ToggleGroupItem
+                    key={btn.value}
+                    value={btn.value}
+                    className={`px-5 py-2 data-[state=on]:bg-gray-100 data-[state=on]:text-black
+                   text-gray-700 font-semibold rounded-none border-r last:border-r-0 
+                   border-gray-200 text-base hover:bg-gray-50 transition-all`}
+                    style={{
+                      borderTopLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
+                      borderBottomLeftRadius: btn.value === "all" ? "0.5rem" : undefined,
+                      borderTopRightRadius: btn.value === "rest" ? "0.5rem" : undefined,
+                      borderBottomRightRadius: btn.value === "rest" ? "0.5rem" : undefined
+                    }}
+                  >
+                    {btn.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
               </div>
             </div>
 

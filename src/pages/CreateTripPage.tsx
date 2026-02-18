@@ -107,6 +107,7 @@ const CreateTripPage: React.FC = () => {
     try {
       setIsSubmitting(true);
       
+      console.log('Stops in form:', stops); // Debug log
       const newTrip = await api.createTrip({
         title: formData.title,
         description: formData.description,

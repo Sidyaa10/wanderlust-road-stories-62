@@ -15,14 +15,14 @@ const HomePage: React.FC = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative h-[70vh] hero-pattern">
-        <div className="absolute inset-0 bg-black/30" />
+      <section className="relative min-h-[90vh] hero-cinematic">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/50" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="container max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 animate-fade-in">
-              Discover Your Perfect Road Trip Adventure
+          <div className="container max-w-7xl px-6 sm:px-8 lg:px-10 text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-[0.03em] text-white mb-7 animate-fade-in hero-title-shadow">
+              Where Will The Road Take You?
             </h1>
-            <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-3xl mx-auto animate-fade-in">
+            <p className="text-base sm:text-lg md:text-xl text-white/90 mb-10 max-w-3xl mx-auto animate-fade-in hero-title-shadow">
               Join our community of travelers sharing the best road trip experiences 
               from around the world. Find inspiration for your next journey.
             </p>
