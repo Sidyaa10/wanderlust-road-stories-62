@@ -68,6 +68,32 @@ export default function AboutUsPage() {
             <span className="text-base text-gray-600 mb-2 text-center">
               Bringing innovation to travel technology
             </span>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+              <a
+                href="https://github.com/Sidyaa10"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-forest-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-forest-800"
+              >
+                Sid Github
+              </a>
+              <a
+                href="https://www.linkedin.com/in/siddhesh-kadam-5b0961367/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-forest-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-forest-800"
+              >
+                Sid LinkedIn
+              </a>
+              <a
+                href="https://sid-kadam.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full bg-forest-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-forest-800"
+              >
+                Sid Portfolio
+              </a>
+            </div>
           </div>
         </div>
       </div>
