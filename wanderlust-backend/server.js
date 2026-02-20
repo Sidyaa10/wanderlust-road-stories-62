@@ -16,7 +16,19 @@ const JWT_SECRET = process.env.JWT_SECRET || "wanderlust_local_dev_secret_change
 const MASTER_EMAIL = "sidkadam@gmail.com";
 const MASTER_PASSWORD = "sidkadam10";
 
-app.use(cors());
+app.use((req, res, next) => {
+  if (req.headers["access-control-request-private-network"] === "true") {
+    res.setHeader("Access-Control-Allow-Private-Network", "true");
+  }
+  next();
+});
+const corsOptions = {
+  origin: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json({ limit: "2mb" }));
 
 const __filename = fileURLToPath(import.meta.url);
