@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 vite.local.config.mjs
 wanderlust-backend/uploads/
+.env
+*.env
+wanderlust-backend/.env
